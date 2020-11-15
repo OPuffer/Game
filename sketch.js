@@ -1,19 +1,70 @@
-class gameState{
+let player;
+let game;
+
+class GameState{
   gameStarted;
   roomIndex;
+  constructor(){
+    this.gameStarted = true;
+    this.roomIndex = 0;
+  }
 }
-class player{
+
+class Player{
  xPos;
  yPos;
- happiness;
+ stress;
  standLeft;
  standRight;
+ higherStressStandL;
+ higherStressStandR;
+ higherStressWalkL;
+ higherStressWalkR;
+
+ constructor(){
+  this.xPos = 200;
+  this.yPos = 200;
+  this.stress = 1;
+  this.standLeft = this.createAnimation("stand","Left", this.stress);
+  /*
+  this.standRight = this.createAnimation("stand","Right", this.stress);
+  this.higherStressStandL = this.createAnimation("stand","Left", this.stress + 1);;
+  this.higherStressStandR = this.createAnimation("stand","Right", this.stress +1);;
+  this.higherStressWalkL  = this.createAnimation("walk","Left", this.stress);;
+  this.higherStressWalkR = this.createAnimation("walk","Left", this.stress);;
+  */
+
+ }
+ createAnimation(type, direction, stress){
+   let numOfFrames;
+   if(type == "stand")
+    numOfFrames = 3;
+   else if(type =="walk"){
+     numOfFrames = 12;
+   } else{
+     console.log.out(`invalid type: ${type}`);
+    }
+   return loadAnimation(`assets/${type}${direction}/sl${stress}/${(0 % numOfFrames) + 1}.png`,
+    `assets/${type}${direction}/sl${stress}/${(1 % numOfFrames) + 1}.png`,
+    `assets/${type}${direction}/sl${stress}/${(2 % numOfFrames) + 1}.png`, 
+    `assets/${type}${direction}/sl${stress}/${(3 % numOfFrames) + 1}.png`, 
+    `assets/${type}${direction}/sl${stress}/${(4 % numOfFrames) + 1}.png`, 
+    `assets/${type}${direction}/sl${stress}/${(5 % numOfFrames) + 1}.png`, 
+    `assets/${type}${direction}/sl${stress}/${(6 % numOfFrames) + 1}.png`, 
+    `assets/${type}${direction}/sl${stress}/${(7 % numOfFrames) + 1}.png`, 
+    `assets/${type}${direction}/sl${stress}/${(8 % numOfFrames) + 1}.png`, 
+    `assets/${type}${direction}/sl${stress}/${(9 % numOfFrames) + 1}.png`, 
+    `assets/${type}${direction}/sl${stress}/${(10 % numOfFrames) + 1}.png`, 
+    `assets/${type}${direction}/sl${stress}/${(11 % numOfFrames) + 1}.png`);
+
+ }
 }
+
 
 
 function preload() {
-  testImage = loadImage("assets/gambler.png");
-  guy = loadImage("assets/walkRight/1.png");
+  game = new GameState();
+  player = new Player();
 }
 
 function setup() {
@@ -27,5 +78,5 @@ function setup() {
 function draw() {
   clear();
   background(200);
-  image(guy, 100, 200, 600, 450);
+  
 }
