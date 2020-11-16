@@ -45,7 +45,7 @@ class Player{
     
   }
   displayPlayer(){
-    if(this.direction == 0){
+    if(this.direction < 0){
       animation(this.standLeft, this.xPos, this.yPos);
     } else {
       animation(this.standRight, this.xPos, this.yPos)
@@ -94,7 +94,7 @@ class Player{
     else if (keyIsDown(83)){
       console.log("DOWN");
       this.yPos = this.yPos + this.speed;
-      if(this.direction = 1){
+      if(this.direction > 0){
         animation(this.walkRight, this.xPos, this.yPos)
       } else {
         animation(this.walkLeft, this.xPos, this.yPos)
@@ -104,7 +104,7 @@ class Player{
     else if (keyIsDown(87)){
       console.log("UP");
       this.yPos = this.yPos - this.speed;
-      if(this.direction = 1){
+      if(this.direction > 0){
         animation(this.walkRight, this.xPos, this.yPos)
       } else {
         animation(this.walkLeft, this.xPos, this.yPos)
