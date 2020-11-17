@@ -5,9 +5,66 @@ let debugMode = true;
 class GameState{
   gameStarted;
   roomIndex;
+  roomArray;
   constructor(){
     this.gameStarted = true;
-    this.roomIndex = 0;
+    this.roomIndex = 1;
+    this.roomArray = [new DiningRoom(), new CommonRoom()];
+  }
+  runCurrentRoom(){
+    this.roomArray[this.roomIndex].runRoom();
+  }
+}
+class Room{
+  background;
+  horizontalLength;
+  runRoom(){
+    player.queryMovementAndDisplay(this);
+  }
+
+  isValidPosition(vx, vy){
+    if(vx < 34 || vx > 1460){
+      console.log("invalidPos");
+      return false;
+    } else if (vy > 502 ||vy < 206){
+      return false;
+    }
+    else {
+      return true;
+    }
+  } 
+}
+class CommonRoom extends Room{
+  constructor(){
+    super();
+    this.background = loadImage("assets/rooms/commonRoomWIP.png");
+    this.horizontalLength = 1500;
+  }
+  runRoom(){
+    image(this.background, 0, 0);
+    super.runRoom();
+  }
+  isValidPosition(vx, vy){
+    let guyLeg = (vx >=274|| (vx < 274 && vy < 300));
+    let guyHead = (vx >=510|| (vx < 510 && vy < 320));
+    let chairback = (vx < 702 || vx > 950) || vy > 270;
+    let chairfront = (vx < 774 || vx > 874) || vy > 302;;
+    return super.isValidPosition(vx, vy) && guyLeg && guyHead && chairback && chairfront;
+  }
+}
+class DiningRoom extends Room{
+  constructor(){
+    super();
+    this.background = loadImage("assets/rooms/diningRoomWIP.png");
+    this.horizontalLength = 1500;
+  }
+  runRoom(){
+    image(this.background, 0, 0);
+    super.runRoom();
+  }
+  isValidPosition(vx, vy){
+    
+    return super.isValidPosition(vx, vy) && (vx >=785|| (vx < 785 && vy < 292));
   }
 }
 
@@ -32,7 +89,7 @@ class Player{
 
   constructor(){
     this.xPos = 100;
-    this.yPos = 400;
+    this.yPos = 250;
     this.stress = 1;
     this.direction = 0;
     this.standLeft = this.createAnimation("stand","Left", this.stress);
@@ -93,14 +150,14 @@ class Player{
       console.count("Invalid Stress level set!");
     } else {
       this.stress = value;
-      this.higherStressStandL = this.createAnimation("stand", "Left", this.stress + 1);
-      this.higherStressStandR = this.createAnimation("stand", "Right", this.stress + 1);
-      this.higherStressWalkL = this.createAnimation("walk", "Left", this.stress + 1);
-      this.higherStressWalkR = this.createAnimation("walk", "Right", this.stress + 1);
       this.standLeft = this.createAnimation("stand", "Left", this.stress);
       this.standRight = this.createAnimation("stand", "Right", this.stress);
       this.walkLeft = this.createAnimation("walk", "Left", this.stress);
       this.walkRight = this.createAnimation("walk", "Right", this.stress);
+      this.higherStressStandL = this.createAnimation("stand", "Left", this.stress + 1);
+      this.higherStressStandR = this.createAnimation("stand", "Right", this.stress + 1);
+      this.higherStressWalkL = this.createAnimation("walk", "Left", this.stress + 1);
+      this.higherStressWalkR = this.createAnimation("walk", "Right", this.stress + 1);
       this.lowerStressStandL = this.createAnimation("stand", "Left", this.stress - 1);
       this.lowerStressStandR = this.createAnimation("stand", "Right", this.stress - 1);
       this.lowerStressWalkL = this.createAnimation("walk", "Left", this.stress - 1);
@@ -108,6 +165,7 @@ class Player{
     }
   }
   displayPlayer(){
+    console.log(this.xPos, this.yPos);
     if(this.direction < 0){
       animation(this.standLeft, this.xPos, this.yPos);
     } else {
@@ -141,23 +199,23 @@ class Player{
       `assets/${type}${direction}/sl${stress}/${(11 % numOfFrames) + 1}.png`);
 
   }
-  queryMovementAndDisplay(){
+  queryMovementAndDisplay(room){
     //MOVE RIGHT
-    if (keyIsDown(68)){
+    if (keyIsDown(68) && room.isValidPosition(this.xPos + this.speed, this.yPos)){
       this.direction = 1;
       console.log("RIGHT");
       this.xPos = this.xPos + this.speed;
       animation(this.walkRight, this.xPos, this.yPos);
     }
     //MOVE LEFT
-    else if (keyIsDown(65)){
+    else if (keyIsDown(65) && room.isValidPosition(this.xPos - this.speed, this.yPos)){
       this.direction = -1;
       console.log("LEFT");
       this.xPos = this.xPos - this.speed;
       animation(this.walkLeft, this.xPos, this.yPos)
     }
     //MoveDown
-    else if (keyIsDown(83)){
+    else if (keyIsDown(83) && room.isValidPosition(this.xPos, this.yPos + this.speed)){
       console.log("DOWN");
       this.yPos = this.yPos + this.speed;
       if(this.direction > 0){
@@ -167,7 +225,7 @@ class Player{
       }
     }
     //MOVE Up
-    else if (keyIsDown(87)){
+    else if (keyIsDown(87) && room.isValidPosition(this.xPos, this.yPos - this.speed)){
       console.log("UP");
       this.yPos = this.yPos - this.speed;
       if(this.direction > 0){
@@ -184,6 +242,7 @@ class Player{
 
 
 }
+
 function keyPressed(){
   if(debugMode && keyCode == 69){
     player.incrementStress();
@@ -191,8 +250,9 @@ function keyPressed(){
   else if(debugMode && keyCode == 81){
     player.decrementStress();
   } else if(debugMode && keyCode ==73){
-    player.setStress(13);
-  }
+    game.roomIndex = (game.roomIndex + 1) % game.roomArray.length;
+    console.log(game.roomIndex);
+  } 
 }
 
 
@@ -202,7 +262,7 @@ function preload() {
 }
 
 function setup() {
-  createCanvas(1508, 612);
+  createCanvas(1500, 625);
   
 }
 
@@ -212,6 +272,6 @@ function setup() {
 function draw() {
   clear();
   background(200);
-  player.queryMovementAndDisplay();
+  game.runCurrentRoom();
   
 }
