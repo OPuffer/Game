@@ -9,7 +9,7 @@ class GameState{
   constructor(){
     this.gameStarted = true;
     this.roomIndex = 1;
-    this.roomArray = [new DiningRoom(), new CommonRoom()];
+    this.roomArray = [new DiningRoom(), new CommonRoom(), new HallWay1(), new HallWay2(), new HallWay3()];
   }
   runCurrentRoom(){
     this.roomArray[this.roomIndex].runRoom();
@@ -32,12 +32,48 @@ class Room{
     else {
       return true;
     }
-  } 
+  }
+   
+}
+class HallWay extends Room{
+  constructor(){
+    super();
+    this.horizontalLength = 1500;
+  }
+  runRoom(){
+    image(this.background, 0, 0);
+    super.runRoom();
+  }
+  isValidPosition(vx, vy){
+    let yValueMin = (-6/7) * vx +540;
+    let otherYValueMin = .742268 * vx - 589.711340;
+    let valid = vy > yValueMin && vy > otherYValueMin;
+    return super.isValidPosition(vx, vy) && valid;
+  }
+
+}
+class HallWay1 extends HallWay{
+  constructor(){
+    super();
+    this.background = loadImage("assets/rooms/hallway1.png");
+  }
+}
+class HallWay2 extends HallWay{
+  constructor(){
+    super();
+    this.background = loadImage("assets/rooms/hallway2.png");
+  }
+}
+class HallWay3 extends HallWay{
+  constructor(){
+    super();
+    this.background = loadImage("assets/rooms/hallway3.png");
+  }
 }
 class CommonRoom extends Room{
   constructor(){
     super();
-    this.background = loadImage("assets/rooms/commonRoomWIP.png");
+    this.background = loadImage("assets/rooms/commonRoom.png");
     this.horizontalLength = 1500;
   }
   runRoom(){
@@ -55,7 +91,7 @@ class CommonRoom extends Room{
 class DiningRoom extends Room{
   constructor(){
     super();
-    this.background = loadImage("assets/rooms/diningRoomWIP.png");
+    this.background = loadImage("assets/rooms/diningRoom.png");
     this.horizontalLength = 1500;
   }
   runRoom(){
