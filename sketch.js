@@ -8,7 +8,7 @@ class GameState{
   roomArray;
   constructor(){
     this.gameStarted = true;
-    this.roomIndex = 1;
+    this.roomIndex = 2;
     this.roomArray = [new DiningRoom(), new CommonRoom(), new HallWay1(), new HallWay2(), new HallWay3()];
   }
   runCurrentRoom(){
@@ -33,7 +33,7 @@ class Room{
       return true;
     }
   }
-   
+
 }
 class HallWay extends Room{
   constructor(){
@@ -124,8 +124,8 @@ class Player{
   lowerStressWalkR;
 
   constructor(){
-    this.xPos = 100;
-    this.yPos = 250;
+    this.xPos = 400;
+    this.yPos = 300;
     this.stress = 1;
     this.direction = 0;
     this.standLeft = this.createAnimation("stand","Left", this.stress);
