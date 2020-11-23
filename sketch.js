@@ -10,8 +10,8 @@ class GameState{
   nextRoomIndex;
   constructor(){
     this.gameStarted = true;
-    this.roomIndex = 2;
-    this.roomArray = [new DiningRoom(), new CommonRoom(), new HallWay1(), new HallWay2(), new HallWay3()];
+    this.roomIndex = 5;
+    this.roomArray = [new Room(), new DiningRoom(), new CommonRoom(), new HallWay1(), new HallWay2(), new HallWay3()];
   }
   runCurrentRoom(){
     this.roomArray[this.roomIndex].runRoom();
@@ -53,7 +53,7 @@ class Room{
       }
     }
     if (totboo == false){
-      game.nextRoomIndex = game.roomIndex;
+      game.nextRoomIndex = false;
     }
 
   }
@@ -80,7 +80,7 @@ class HallWay1 extends HallWay{
   constructor(){
     super();
     this.background = loadImage("assets/rooms/HallWay1.png");
-    this.arrows = [new arrow("leftArrow", 232, 393, 0), new arrow("forwardArrow", 728, 226,  1)];
+    this.arrows = [new arrow("leftArrow", 232, 393, 0), new arrow("forwardArrow", 728, 226,  4)];
   }
   runRoom(){
     super.runRoom();
@@ -90,14 +90,14 @@ class HallWay2 extends HallWay{
   constructor(){
     super();
     this.background = loadImage("assets/rooms/hallway2.png");
-    this.arrows = [];
+    this.arrows = [new arrow("leftArrow", 232, 293, 0), new arrow("forwardArrow", 728, 226,  5), new arrow("rightDoorArrow", 1196, 394, 0), new arrow("backArrow", 731, 558, 3)];
   }
 }
 class HallWay3 extends HallWay{
   constructor(){
     super();
     this.background = loadImage("assets/rooms/hallway3.png");
-    this.arrows = [];
+    this.arrows = [new arrow("backArrow", 731, 558, 4), new arrow("leftDoorArrow", 286, 397, 0), new arrow("rightDoorArrow", 1171, 425, 0)];
   }
 }
 class CommonRoom extends Room{
@@ -154,7 +154,7 @@ class arrow{
     this.nextRoom = nextRoom;
   }
   displayArrow(){
-    if(this.distanceFromCenter(player) < 100){
+    if(this.distanceFromCenter(player) < 200){
       image(this.imgFileM, this.xPos, this.yPos);
       return true;
     } else {
@@ -168,7 +168,7 @@ class arrow{
 }
 
 class Player{
-  speed = 2;
+  speed = 4;
   direction; //-1 = Left 1 = Right
   xPos;
   yPos;
@@ -264,7 +264,7 @@ class Player{
     }
   }
   displayPlayer(){
-    //console.log(mouseX, mouseY);
+    console.log(mouseX, mouseY);
     if(this.direction < 0){
       animation(this.standLeft, this.xPos, this.yPos);
     } else {
@@ -351,9 +351,11 @@ function keyPressed(){
   } else if(debugMode && keyCode ==73){
     game.roomIndex = (game.roomIndex + 1) % game.roomArray.length;
     console.log(game.roomIndex);
-  } else if(keyCode == 32){
+  } else if(keyCode == 32 && game.nextRoomIndex){
     console.log("move?");
     game.roomIndex = game.nextRoomIndex;
+    player.yPos = 400;
+    player.xPos = 800;
   }
 }
 
