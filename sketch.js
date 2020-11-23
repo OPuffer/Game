@@ -10,8 +10,8 @@ class GameState{
   nextRoomIndex;
   constructor(){
     this.gameStarted = true;
-    this.roomIndex = 5;
-    this.roomArray = [new Room(), new DiningRoom(), new CommonRoom(), new HallWay1(), new HallWay2(), new HallWay3()];
+    this.roomIndex = 6;
+    this.roomArray = [new Room(), new DiningRoom(), new CommonRoom(), new HallWay1(), new HallWay2(), new HallWay3(), new NurseStation];
   }
   runCurrentRoom(){
     this.roomArray[this.roomIndex].runRoom();
@@ -90,7 +90,7 @@ class HallWay2 extends HallWay{
   constructor(){
     super();
     this.background = loadImage("assets/rooms/hallway2.png");
-    this.arrows = [new arrow("leftArrow", 232, 293, 0), new arrow("forwardArrow", 728, 226,  5), new arrow("rightDoorArrow", 1196, 394, 0), new arrow("backArrow", 731, 558, 3)];
+    this.arrows = [new arrow("leftArrow", 232, 293, 6), new arrow("forwardArrow", 728, 226,  5), new arrow("rightDoorArrow", 1196, 394, 0), new arrow("backArrow", 731, 558, 3)];
   }
 }
 class HallWay3 extends HallWay{
@@ -100,11 +100,26 @@ class HallWay3 extends HallWay{
     this.arrows = [new arrow("backArrow", 731, 558, 4), new arrow("leftDoorArrow", 286, 397, 0), new arrow("rightDoorArrow", 1171, 425, 0)];
   }
 }
+class NurseStation extends Room{
+  constructor(){
+    super();
+    this.background = loadImage("assets/rooms/nurseStation.png");
+    this.arrows = [new arrow("leftArrow", 63, 338, 1, 150), new arrow("rightArrow", 1300, 405, 4, 0, -80)]
+    
+  }
+  runRoom(){
+    image(this.background, 0, 0);
+    super.runRoom();
+  }
+  isValidPosition(vx, vy){
+    return super.isValidPosition(vx, vy) && ((vx > 960) || vy > 380);
+  }
+}
 class CommonRoom extends Room{
   constructor(){
     super();
     this.background = loadImage("assets/rooms/commonRoom.png");
-    this.horizontalLength = 1500;
+    this.arrows = [new arrow("backArrow", 709, 542, 1), new arrow("leftDoorArrow", 169, 266, 0 ,10, 200)]
   }
   runRoom(){
     image(this.background, 0, 0);
@@ -122,7 +137,7 @@ class DiningRoom extends Room{
   constructor(){
     super();
     this.background = loadImage("assets/rooms/diningRoom.png");
-    this.horizontalLength = 1500;
+    this.arrows = [new arrow("rightArrow", 1386, 314), new arrow("forwardArrow", 745, 210, 2)];
   }
   runRoom(){
     image(this.background, 0, 0);
@@ -142,11 +157,11 @@ class arrow{
   nextRoom;
   apparentX;
   apparentY;
-  constructor(imageName, x, y, nextRoom){
+  constructor(imageName, x, y, nextRoom, xOffset = 0, yOffset = 0){
     this.imgFile = loadImage(`assets/arrows/${imageName}.png`);
     this.imgFileM = loadImage(`assets/arrows/${imageName}M.png`);
-    this.xPos = 0;
-    this.yPos = 0;
+    this.xPos = 0 - xOffset;
+    this.yPos = 0 - yOffset;
     this.apparentX = x;
     this.apparentY = y;
     this.xWidth = width;
@@ -187,8 +202,8 @@ class Player{
   lowerStressWalkR;
 
   constructor(){
-    this.xPos = 400;
-    this.yPos = 300;
+    this.xPos = 800;
+    this.yPos = 400;
     this.stress = 1;
     this.direction = 0;
     this.standLeft = this.createAnimation("stand","Left", this.stress);
