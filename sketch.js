@@ -2,10 +2,12 @@ let player;
 let game;
 let debugMode = true;
 
+
 class GameState{
   gameStarted;
   roomIndex;
   roomArray;
+  nextRoomIndex;
   constructor(){
     this.gameStarted = true;
     this.roomIndex = 2;
@@ -23,8 +25,9 @@ class Room{
     this.arrows = [];
   }
   runRoom(){
-    player.queryMovementAndDisplay(this);
     this.drawArrows();
+    player.queryMovementAndDisplay(this);
+    
   }
 
   isValidPosition(vx, vy){
@@ -38,12 +41,21 @@ class Room{
       return true;
     }
   }
-
   drawArrows(){
     let i;
+    let totboo = false;
+    let currBoo;
     for(i = 0; i < this.arrows.length; i++){
-      this.arrows[i].displayArrow();
+      currBoo= this.arrows[i].displayArrow();
+      totboo = totboo || currBoo
+      if (currBoo){
+        game.nextRoomIndex = this.arrows[i].nextRoom;
+      }
     }
+    if (totboo == false){
+      game.nextRoomIndex = game.roomIndex;
+    }
+
   }
 
 }
@@ -68,7 +80,7 @@ class HallWay1 extends HallWay{
   constructor(){
     super();
     this.background = loadImage("assets/rooms/HallWay1.png");
-    this.arrows = [new arrow("backArrow", 724, 555, 0)];
+    this.arrows = [new arrow("leftArrow", 232, 393, 0), new arrow("forwardArrow", 728, 226,  1)];
   }
   runRoom(){
     super.runRoom();
@@ -142,14 +154,16 @@ class arrow{
     this.nextRoom = nextRoom;
   }
   displayArrow(){
-    if(this.distanceFromCenter() < 100){
+    if(this.distanceFromCenter(player) < 100){
       image(this.imgFileM, this.xPos, this.yPos);
+      return true;
     } else {
       image(this.imgFile, this.xPos, this.yPos);
+      return false;
     }
   }
-  distanceFromCenter(){
-    return Math.abs(this.apparentX - mouseX) + Math.abs(this.apparentY - mouseY);
+  distanceFromCenter(player){
+    return Math.abs(this.apparentX - player.xPos) + Math.abs(this.apparentY - player.yPos);
   }
 }
 
@@ -250,7 +264,7 @@ class Player{
     }
   }
   displayPlayer(){
-    console.log(mouseX, mouseY);
+    //console.log(mouseX, mouseY);
     if(this.direction < 0){
       animation(this.standLeft, this.xPos, this.yPos);
     } else {
@@ -337,7 +351,10 @@ function keyPressed(){
   } else if(debugMode && keyCode ==73){
     game.roomIndex = (game.roomIndex + 1) % game.roomArray.length;
     console.log(game.roomIndex);
-  } 
+  } else if(keyCode == 32){
+    console.log("move?");
+    game.roomIndex = game.nextRoomIndex;
+  }
 }
 
 
