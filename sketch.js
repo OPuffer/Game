@@ -18,8 +18,13 @@ class GameState{
 class Room{
   background;
   horizontalLength;
+  arrows;
+  constructor(){
+    this.arrows = [];
+  }
   runRoom(){
     player.queryMovementAndDisplay(this);
+    this.drawArrows();
   }
 
   isValidPosition(vx, vy){
@@ -31,6 +36,13 @@ class Room{
     }
     else {
       return true;
+    }
+  }
+
+  drawArrows(){
+    let i;
+    for(i = 0; i < this.arrows.length; i++){
+      this.arrows[i].displayArrow();
     }
   }
 
@@ -55,19 +67,25 @@ class HallWay extends Room{
 class HallWay1 extends HallWay{
   constructor(){
     super();
-    this.background = loadImage("assets/rooms/hallway1.png");
+    this.background = loadImage("assets/rooms/HallWay1.png");
+    this.arrows = [new arrow("backArrow", 724, 555, 0)];
+  }
+  runRoom(){
+    super.runRoom();
   }
 }
 class HallWay2 extends HallWay{
   constructor(){
     super();
     this.background = loadImage("assets/rooms/hallway2.png");
+    this.arrows = [];
   }
 }
 class HallWay3 extends HallWay{
   constructor(){
     super();
     this.background = loadImage("assets/rooms/hallway3.png");
+    this.arrows = [];
   }
 }
 class CommonRoom extends Room{
@@ -101,6 +119,37 @@ class DiningRoom extends Room{
   isValidPosition(vx, vy){
     
     return super.isValidPosition(vx, vy) && (vx >=785|| (vx < 785 && vy < 292));
+  }
+}
+class arrow{
+  xPos;
+  yPos;
+  imgFile;
+  imgFileM;
+  mouseOverFile;
+  nextRoom;
+  apparentX;
+  apparentY;
+  constructor(imageName, x, y, nextRoom){
+    this.imgFile = loadImage(`assets/arrows/${imageName}.png`);
+    this.imgFileM = loadImage(`assets/arrows/${imageName}M.png`);
+    this.xPos = 0;
+    this.yPos = 0;
+    this.apparentX = x;
+    this.apparentY = y;
+    this.xWidth = width;
+    this.yHeight = height;
+    this.nextRoom = nextRoom;
+  }
+  displayArrow(){
+    if(this.distanceFromCenter() < 100){
+      image(this.imgFileM, this.xPos, this.yPos);
+    } else {
+      image(this.imgFile, this.xPos, this.yPos);
+    }
+  }
+  distanceFromCenter(){
+    return Math.abs(this.apparentX - mouseX) + Math.abs(this.apparentY - mouseY);
   }
 }
 
@@ -201,7 +250,7 @@ class Player{
     }
   }
   displayPlayer(){
-    console.log(this.xPos, this.yPos);
+    console.log(mouseX, mouseY);
     if(this.direction < 0){
       animation(this.standLeft, this.xPos, this.yPos);
     } else {
