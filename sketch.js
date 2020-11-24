@@ -79,7 +79,7 @@ class HallWay extends Room{
 class HallWay1 extends HallWay{
   constructor(){
     super();
-    this.background = loadImage("assets/rooms/HallWay1.png");
+    this.background = loadImage("assets/rooms/hallway1.png");
     this.arrows = [new arrow("leftArrow", 232, 393, 0), new arrow("forwardArrow", 728, 226,  4)];
   }
   runRoom(){
