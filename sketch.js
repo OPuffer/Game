@@ -137,7 +137,7 @@ class DiningRoom extends Room{
   constructor(){
     super();
     this.background = loadImage("assets/rooms/diningRoom.png");
-    this.arrows = [new arrow("rightArrow", 1386, 314), new arrow("forwardArrow", 745, 210, 2)];
+    this.arrows = [new arrow("rightArrow", 1386, 314, 6), new arrow("forwardArrow", 745, 210, 2)];
   }
   runRoom(){
     image(this.background, 0, 0);
