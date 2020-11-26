@@ -8,15 +8,23 @@ class GameState{
   roomIndex;
   roomArray;
   nextRoomIndex;
+  headsUp;
   constructor(){
     this.gameStarted = true;
     this.roomIndex = 1;
     this.roomArray = [new Room(), new DiningRoom(), new CommonRoom(), new HallWay1(), new HallWay2(), new HallWay3(), new NurseStation];
+    this.headsUp = new HUD(player);
   }
   runCurrentRoom(){
     this.roomArray[this.roomIndex].runRoom();
+    
+  }
+  runGame(){
+    this.runCurrentRoom();
+    this.headsUp.displayHUD();
   }
 }
+
 class RoomElement{
   imgFile;
   xPos;
@@ -73,7 +81,7 @@ class InteractableElement extends RoomElement{
   }
   
   distanceFromCenter(player){
-    console.log(Math.abs(this.apparentY));
+    
     return Math.abs(this.apparentX - player.xPos) + Math.abs(this.apparentY - player.yPos);
   }
 
@@ -431,6 +439,37 @@ class Player{
 
 }
 
+
+
+class HUD{
+  ply;
+  spoonIMG;
+  constructor(player){
+    this.ply = player
+    this.spoonIMG = loadImage("assets/spoon.png");
+  }
+  displaySpoon(i){
+    //console.log("displaySppon");
+    image(this.spoonIMG, 10 + i * 20, 300);
+  }
+  displayBox(){
+    fill(255,255,255);
+    rect(1, 525, 1499, 100, 10, 10, 10, 10);
+  }
+  displayTextBox(txt){
+    fill(255,255,255);
+    rect(1, 525, 1499, 100, 10, 10, 10, 10);
+    textSize(24);
+    fill(0, 0, 0);
+    text(txt, 10, 540, 1450, 400);
+  }
+  displayHUD(){
+    //console.log("displayingHUD");
+    this.displayTextBox("");
+    this.displaySpoon(0);
+  }
+}
+
 function keyPressed(){
   if(debugMode && keyCode == 69){
     player.incrementStress();
@@ -465,7 +504,7 @@ function setup() {
 function draw() {
   clear();
   background(200);
-  game.runCurrentRoom();
-  //console.log(player.xPos, player.yPos);
+  game.runGame();
   
+  //game.headsUp.displayTextBox("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.");
 }
