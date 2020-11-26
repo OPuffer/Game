@@ -450,8 +450,9 @@ class HUD{
   }
   displaySpoon(i){
     //console.log("displaySppon");
-    image(this.spoonIMG, 10 + i * 20, 300);
+    image(this.spoonIMG, 20 + i * 20, 550, 50, 50);
   }
+  
   displayBox(){
     fill(255,255,255);
     rect(1, 525, 1499, 100, 10, 10, 10, 10);
