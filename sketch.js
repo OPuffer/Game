@@ -10,24 +10,90 @@ class GameState{
   nextRoomIndex;
   constructor(){
     this.gameStarted = true;
-    this.roomIndex = 6;
+    this.roomIndex = 1;
     this.roomArray = [new Room(), new DiningRoom(), new CommonRoom(), new HallWay1(), new HallWay2(), new HallWay3(), new NurseStation];
   }
   runCurrentRoom(){
     this.roomArray[this.roomIndex].runRoom();
   }
 }
+class RoomElement{
+  imgFile;
+  xPos;
+  yPos;
+  behindPlayer;
+  constructor(imgName, x, y, behind = true){
+    this.imgFile = loadImage(`assets/roomElem/${imgName}.png`);
+    this.xPos = x;
+    this.yPos = y;
+    this.behindPlayer = behind;
+  }
+  displayElem(){
+    if (!this.behindPlayer){
+      image(this.imgFile, this.xPos, this.yPos);
+    }
+  }
+  displayBehind(){
+    if (this.behindPlayer){
+      image(this.imgFile, this.xPos, this.yPos);
+    }
+  }
+
+}
+class InteractableElement extends RoomElement{
+  imgFileM;
+  apparentX;
+  apparentY;
+
+  constructor(imgName, appX, appY, x, y, behind){
+    super(imgName, x, y, behind);
+    this.imgFileM = loadImage(`assets/roomElem/${imgName}M.png`);
+    this.apparentX= appX;
+    this.apparentY= appY;
+  }
+
+  displayElem(){
+    if (this.distanceFromCenter(player) < 200){
+      if (!this.behindPlayer){
+        image(this.imgFileM, this.xPos, this.yPos);
+      }
+
+    } else {
+      super.displayElem();
+    }
+  }
+  displayBehind(){
+    if (this.distanceFromCenter(player) < 200){
+      if (this.behindPlayer){
+        image(this.imgFileM, this.xPos, this.yPos);
+      }
+    } else{
+      super.displayBehind();
+    }
+  }
+  
+  distanceFromCenter(player){
+    console.log(Math.abs(this.apparentY));
+    return Math.abs(this.apparentX - player.xPos) + Math.abs(this.apparentY - player.yPos);
+  }
+
+}
+
+
 class Room{
   background;
   horizontalLength;
   arrows;
+  roomElems;
   constructor(){
     this.arrows = [];
+    this.roomElems = [];
   }
   runRoom(){
     this.drawArrows();
+    this.displayElemsBehind();
     player.queryMovementAndDisplay(this);
-    
+    this.displayElems();
   }
 
   isValidPosition(vx, vy){
@@ -42,10 +108,9 @@ class Room{
     }
   }
   drawArrows(){
-    let i;
     let totboo = false;
     let currBoo;
-    for(i = 0; i < this.arrows.length; i++){
+    for(let i = 0; i < this.arrows.length; i++){
       currBoo= this.arrows[i].displayArrow();
       totboo = totboo || currBoo
       if (currBoo){
@@ -55,7 +120,17 @@ class Room{
     if (totboo == false){
       game.nextRoomIndex = false;
     }
+  }
 
+  displayElemsBehind(){
+    for(let i = 0; i < this.roomElems.length; i++){
+      this.roomElems[i].displayBehind();
+    }
+  }
+  displayElems(){
+    for(let i = 0; i < this.roomElems.length; i++){
+      this.roomElems[i].displayElem();
+    }
   }
 
 }
@@ -138,13 +213,13 @@ class DiningRoom extends Room{
     super();
     this.background = loadImage("assets/rooms/diningRoom.png");
     this.arrows = [new arrow("rightArrow", 1386, 314, 6), new arrow("forwardArrow", 745, 210, 2)];
+    this.roomElems =[new RoomElement("diningTable", 0, 0, false), new InteractableElement("foodCabinet", 1140, 208, 600, -175, true)];
   }
   runRoom(){
     image(this.background, 0, 0);
     super.runRoom();
   }
   isValidPosition(vx, vy){
-    
     return super.isValidPosition(vx, vy) && (vx >=785|| (vx < 785 && vy < 292));
   }
 }
@@ -153,7 +228,6 @@ class arrow{
   yPos;
   imgFile;
   imgFileM;
-  mouseOverFile;
   nextRoom;
   apparentX;
   apparentY;
@@ -279,7 +353,7 @@ class Player{
     }
   }
   displayPlayer(){
-    console.log(mouseX, mouseY);
+    //console.log(mouseX, mouseY);
     if(this.direction < 0){
       animation(this.standLeft, this.xPos, this.yPos);
     } else {
@@ -392,5 +466,6 @@ function draw() {
   clear();
   background(200);
   game.runCurrentRoom();
+  //console.log(player.xPos, player.yPos);
   
 }
