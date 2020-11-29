@@ -12,17 +12,22 @@ class GameState{
   currentTime;
   earlyMorningSet;
   breakfastSet;
+  activityTimeSet;
+  lunchSet;
   constructor(){
     this.gameStarted = true;
-    this.roomIndex = 6;
-    this.roomArrayTestSet = [new Room(), new BreakfastDR(), new CommonRoom(), new HallWay1(), new HallWay2(), new HallWay3(), new NurseStation, new Bedroom()];
+    this.roomIndex = 7;
+    this.roomArrayTestSet = [new Room(), new BreakfastDR(), new CommonRoom(), new HallWay1(), new HallWay2(), new HallWay3(), new NurseStation(), new Bedroom()];
     this.headsUp = new HUD(player);
 
     //INIT ACTUAL ROOMSETS
-    this.earlyMorningSet =[new Room(), new Room(), new Room(), new HallWay1(), new HallWay2(), new HallWay3()];
-    this.breakfastSet = [new Room(), new BreakfastDR()];
+    this.earlySet =[new Room(), new Room(), new Room(), new HallWay1(), new HallWay2(), new HallWay3(), new earlyMorningNS, new EarlyBR()];
+    this.breakfastSet = [new Room(), new BreakfastDR(), new MorningCR(), new HallWay1(), new NoRoomHW2(), new NoBathroomHW3(), new NurseStation(), new Room()];
+    this.activitySet=[new Room(), new DiningRoom(), new ActivityCR(), new HallWay1(), new HallWay2(), new NoBathroomHW3(), new NurseStation(), new ActivityBR()];
+    this.lunchSet = [new Room(), new LunchDR(), new AfternoonCR(), new HallWay1(), new NoRoomHW2(), new NoBathroomHW3(), new NurseStation(), new ActivityBR()];
+    
     //SET "TIME" TO FIRST ROOMSET AT START
-    this.currentTime = this.roomArrayTestSet;
+    this.currentTime = this.earlySet;
   }
   runCurrentRoom(){
     this.currentTime[this.roomIndex].runRoom();
@@ -45,15 +50,21 @@ class RoomElement{
     this.yPos = y;
     this.behindPlayer = behind;
   }
+  drawElem(){
+    image(this.imgFile, this.xPos, this.yPos);
+  }
   displayElem(){
     if (!this.behindPlayer){
-      image(this.imgFile, this.xPos, this.yPos);
+      this.drawElem();
     }
   }
   displayBehind(){
     if (this.behindPlayer){
-      image(this.imgFile, this.xPos, this.yPos);
+      this.drawElem();
     }
+  }
+  distanceFromCenter(player){
+    return Math.abs(this.apparentX - player.xPos) + Math.abs(this.apparentY - player.yPos);
   }
 
 }
@@ -68,11 +79,14 @@ class InteractableElement extends RoomElement{
     this.apparentX= appX;
     this.apparentY= appY;
   }
+  drawElemM(){
+    image(this.imgFileM, this.xPos, this.yPos);
+  }
 
   displayElem(){
     if (this.distanceFromCenter(player) < 200){
       if (!this.behindPlayer){
-        image(this.imgFileM, this.xPos, this.yPos);
+        this.drawElemM();
       }
 
     } else {
@@ -82,18 +96,29 @@ class InteractableElement extends RoomElement{
   displayBehind(){
     if (this.distanceFromCenter(player) < 200){
       if (this.behindPlayer){
-        image(this.imgFileM, this.xPos, this.yPos);
+        this.drawElemM();
       }
     } else{
       super.displayBehind();
     }
   }
-  
-  distanceFromCenter(player){
-    
-    return Math.abs(this.apparentX - player.xPos) + Math.abs(this.apparentY - player.yPos);
-  }
 
+}
+class InteractablePerson extends InteractableElement{
+  underImg;
+  constructor(imgName, appX, appY, x, y, behind = true){
+    super("speechBubble", appX, appY, x, y, behind);
+    this.underImg= loadImage(`assets/roomElem/${imgName}.png`);
+  }
+  drawElem(){
+    image(this.underImg, 0, 0);
+    super.drawElem();
+    
+  }
+  drawElemM(){
+    image(this.underImg, 0, 0);
+    super.drawElemM();
+  }
 }
 
 
@@ -172,7 +197,7 @@ class HallWay1 extends HallWay{
   constructor(){
     super();
     this.background = loadImage("assets/rooms/hallway1.png");
-    this.arrows = [new arrow("leftArrow", 232, 393, 0), new arrow("forwardArrow", 728, 226,  4)];
+    this.arrows = [new arrow("forwardArrow", 728, 226,  4)];
   }
   runRoom(){
     super.runRoom();
@@ -185,11 +210,25 @@ class HallWay2 extends HallWay{
     this.arrows = [new arrow("leftArrow", 232, 293, 6), new arrow("forwardArrow", 728, 226,  5), new arrow("rightDoorArrow", 1196, 394, 7), new arrow("backArrow", 731, 558, 3)];
   }
 }
+class NoRoomHW2 extends HallWay{
+  constructor(){
+    super();
+    this.background = loadImage("assets/rooms/hallway2.png");
+    this.arrows = [new arrow("leftArrow", 232, 293, 6), new arrow("forwardArrow", 728, 226,  5), new arrow("backArrow", 731, 558, 3)];
+  }
+}
 class HallWay3 extends HallWay{
   constructor(){
     super();
     this.background = loadImage("assets/rooms/hallway3.png");
     this.arrows = [new arrow("backArrow", 731, 558, 4), new arrow("leftDoorArrow", 286, 397, 0), new arrow("rightDoorArrow", 1171, 425, 0)];
+  }
+}
+class NoBathroomHW3 extends HallWay{
+  constructor(){
+    super();
+    this.background = loadImage("assets/rooms/hallway3.png");
+    this.arrows = [new arrow("backArrow", 731, 558, 4)];
   }
 }
 class NurseStation extends Room{
@@ -198,7 +237,7 @@ class NurseStation extends Room{
     super();
     this.background = loadImage("assets/rooms/nurseStation.png");
     this.deskCorner = loadImage("assets/roomElem/deskCorner.png");
-    this.arrows = [new arrow("leftArrow", 63, 338, 1, 150), new arrow("rightArrow", 1300, 405, 4, 0, -80)]
+    this.arrows = [new arrow("leftArrow", 63, 338, 1, 150), new arrow("rightArrow", 1300, 405, 4, 0, -80)];
     this.roomElems = [new RoomElement("deskNurse", 0, 0, true), new RoomElement("computer", 0, 0, true)];
   }
   runRoom(){
@@ -213,16 +252,23 @@ class NurseStation extends Room{
   }
 
 }
+class breakfastSetNS extends NurseStation{
+  constructor(){
+    super();
+  }
+}
 class earlyMorningNS extends NurseStation{
   constructor(){
     super();
+    this.arrows = [new arrow("rightArrow", 1300, 405, 4, 0, -80)];
+    this.roomElems.push(new InteractablePerson("vitalsCart", 608, 384, 500, 200));
   }
 }
 class CommonRoom extends Room{
   constructor(){
     super();
     this.background = loadImage("assets/rooms/commonRoom.png");
-    this.arrows = [new arrow("backArrow", 709, 542, 1), new arrow("leftDoorArrow", 169, 266, 0 ,10, 200)]
+    this.arrows = [new arrow("backArrow", 709, 542, 1)]
   }
   runRoom(){
     image(this.background, 0, 0);
@@ -234,6 +280,22 @@ class CommonRoom extends Room{
     let chairback = (vx < 702 || vx > 950) || vy > 270;
     let chairfront = (vx < 774 || vx > 874) || vy > 302;;
     return super.isValidPosition(vx, vy) && guyLeg && guyHead && chairback && chairfront;
+  }
+}
+class AfternoonCR extends CommonRoom{
+  constructor(){
+    super();
+  }
+}
+class ActivityCR extends AfternoonCR{
+  constructor(){
+    super();
+    this.arrows.push(new arrow("leftDoorArrow", 169, 266, 0 ,10, 200));
+  }
+}
+class MorningCR extends CommonRoom{
+  constructor(){
+    super();
   }
 }
 class DiningRoom extends Room{
@@ -257,6 +319,12 @@ class BreakfastDR extends DiningRoom{
     this.roomElems[1] = new InteractableElement("foodCabinet", 1140, 208, 600, -175, true);
   }
 }
+class LunchDR extends DiningRoom{
+  constructor(){
+    super();
+    this.background =loadImage("assets/rooms/afternoonDR.png");
+  }
+}
 class Bedroom extends Room{
   constructor(){
     super();
@@ -268,9 +336,23 @@ class Bedroom extends Room{
     super.runRoom();
   }
   isValidPosition(vx, vy){
-    return super.isValidPosition(vx, vy) && (vy > 306);
+    return super.isValidPosition(vx, vy) && (vy > 306) && (vy> -0.875*vx + 530) && (vy > 0.7741*vx - 630);
   }
 }
+class ActivityBR extends Bedroom{
+  constructor(){
+    super();
+    this.roomElems.push(new InteractableElement("bed", 1080, 400, 0, 0, true));
+  }
+}
+class EarlyBR extends Bedroom{
+  constructor(){
+    super();
+    this.roomElems.push(new RoomElement("bed", 0, 0, true));
+    this.roomElems.push(new InteractableElement("whale", 180, 428, 0, 0, true));
+  }
+}
+
 
 class arrow{
   xPos;
@@ -315,7 +397,6 @@ class invItem{
     image(imgFile, x, y);
   }
 }
-
 class Player{
   speed = 4;
   direction; //-1 = Left 1 = Right
@@ -498,8 +579,6 @@ class Player{
 
 
 }
-
-
 
 class HUD{
   ply;
