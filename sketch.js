@@ -9,14 +9,23 @@ class GameState{
   roomArrayTest;
   nextRoomIndex;
   headsUp;
+  currentTime;
+  earlyMorningSet;
+  breakfastSet;
   constructor(){
     this.gameStarted = true;
-    this.roomIndex = 7;
-    this.roomArrayTest = [new Room(), new DiningRoom(), new CommonRoom(), new HallWay1(), new HallWay2(), new HallWay3(), new NurseStation, new Bedroom()];
+    this.roomIndex = 6;
+    this.roomArrayTestSet = [new Room(), new BreakfastDR(), new CommonRoom(), new HallWay1(), new HallWay2(), new HallWay3(), new NurseStation, new Bedroom()];
     this.headsUp = new HUD(player);
+
+    //INIT ACTUAL ROOMSETS
+    this.earlyMorningSet =[new Room(), new Room(), new Room(), new HallWay1(), new HallWay2(), new HallWay3()];
+    this.breakfastSet = [new Room(), new BreakfastDR()];
+    //SET "TIME" TO FIRST ROOMSET AT START
+    this.currentTime = this.roomArrayTestSet;
   }
   runCurrentRoom(){
-    this.roomArrayTest[this.roomIndex].runRoom();
+    this.currentTime[this.roomIndex].runRoom();
     
   }
   runGame(){
@@ -184,18 +193,29 @@ class HallWay3 extends HallWay{
   }
 }
 class NurseStation extends Room{
+  deskCorner;
   constructor(){
     super();
     this.background = loadImage("assets/rooms/nurseStation.png");
+    this.deskCorner = loadImage("assets/roomElem/deskCorner.png");
     this.arrows = [new arrow("leftArrow", 63, 338, 1, 150), new arrow("rightArrow", 1300, 405, 4, 0, -80)]
-    
+    this.roomElems = [new RoomElement("deskNurse", 0, 0, true), new RoomElement("computer", 0, 0, true)];
   }
   runRoom(){
     image(this.background, 0, 0);
     super.runRoom();
+    if((player.xPos > (player.yPos + 617.6)/.86)){
+      image(this.deskCorner, 0, 0);
+    }
   }
   isValidPosition(vx, vy){
-    return super.isValidPosition(vx, vy) && ((vx > 960) || vy > 380);
+    return super.isValidPosition(vx, vy) && ((vx > (vy +617.6)/.86) || vy > 380);
+  }
+
+}
+class earlyMorningNS extends NurseStation{
+  constructor(){
+    super();
   }
 }
 class CommonRoom extends Room{
@@ -221,7 +241,7 @@ class DiningRoom extends Room{
     super();
     this.background = loadImage("assets/rooms/diningRoom.png");
     this.arrows = [new arrow("rightArrow", 1386, 314, 6), new arrow("forwardArrow", 745, 210, 2)];
-    this.roomElems =[new RoomElement("diningTable", 0, 0, false), new InteractableElement("foodCabinet", 1140, 208, 600, -175, true)];
+    this.roomElems =[new RoomElement("diningTable", 0, 0, false), new RoomElement("foodCabinet", 600, -175, true)];
   }
   runRoom(){
     image(this.background, 0, 0);
@@ -229,6 +249,12 @@ class DiningRoom extends Room{
   }
   isValidPosition(vx, vy){
     return super.isValidPosition(vx, vy) && (vx >=785|| (vx < 785 && vy < 292));
+  }
+}
+class BreakfastDR extends DiningRoom{
+  constructor(){
+    super()
+    this.roomElems[1] = new InteractableElement("foodCabinet", 1140, 208, 600, -175, true);
   }
 }
 class Bedroom extends Room{
@@ -497,7 +523,9 @@ class HUD{
   }
   
   displayBottomBox(){
-    fill(255,255,255);
+    let boxColor = color(255, 255, 255)
+    boxColor.setAlpha(200);
+    fill(boxColor);
     rect(1, 525, 1499, 100, 10, 10, 10, 10);
   }
   displayText(txt, x = 20, y = 560){
@@ -556,5 +584,4 @@ function draw() {
   background(200);
   game.runGame();
   console.log(player.xPos, player.yPos);
-  //game.headsUp.displayTextBox("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.");
 }
