@@ -6,17 +6,17 @@ let debugMode = true;
 class GameState{
   gameStarted;
   roomIndex;
-  roomArray;
+  roomArrayTest;
   nextRoomIndex;
   headsUp;
   constructor(){
     this.gameStarted = true;
-    this.roomIndex = 1;
-    this.roomArray = [new Room(), new DiningRoom(), new CommonRoom(), new HallWay1(), new HallWay2(), new HallWay3(), new NurseStation];
+    this.roomIndex = 7;
+    this.roomArrayTest = [new Room(), new DiningRoom(), new CommonRoom(), new HallWay1(), new HallWay2(), new HallWay3(), new NurseStation, new Bedroom()];
     this.headsUp = new HUD(player);
   }
   runCurrentRoom(){
-    this.roomArray[this.roomIndex].runRoom();
+    this.roomArrayTest[this.roomIndex].runRoom();
     
   }
   runGame(){
@@ -173,7 +173,7 @@ class HallWay2 extends HallWay{
   constructor(){
     super();
     this.background = loadImage("assets/rooms/hallway2.png");
-    this.arrows = [new arrow("leftArrow", 232, 293, 6), new arrow("forwardArrow", 728, 226,  5), new arrow("rightDoorArrow", 1196, 394, 0), new arrow("backArrow", 731, 558, 3)];
+    this.arrows = [new arrow("leftArrow", 232, 293, 6), new arrow("forwardArrow", 728, 226,  5), new arrow("rightDoorArrow", 1196, 394, 7), new arrow("backArrow", 731, 558, 3)];
   }
 }
 class HallWay3 extends HallWay{
@@ -231,6 +231,21 @@ class DiningRoom extends Room{
     return super.isValidPosition(vx, vy) && (vx >=785|| (vx < 785 && vy < 292));
   }
 }
+class Bedroom extends Room{
+  constructor(){
+    super();
+    this.background = loadImage("assets/rooms/bedroom.png");
+    this.arrows = [new arrow("leftDoorArrow", 308, 312, 4)];
+  }
+  runRoom(){
+    image(this.background, 0, 0);
+    super.runRoom();
+  }
+  isValidPosition(vx, vy){
+    return super.isValidPosition(vx, vy) && (vy > 306);
+  }
+}
+
 class arrow{
   xPos;
   yPos;
@@ -263,6 +278,17 @@ class arrow{
     return Math.abs(this.apparentX - player.xPos) + Math.abs(this.apparentY - player.yPos);
   }
 }
+class invItem{
+  name;
+  imgFile;
+  constructor(name){
+    this.name = name;
+    this.imgFile = loadImage(`assets/inventory/${name}.png`);
+  }
+  displayItem(x, y){
+    image(imgFile, x, y);
+  }
+}
 
 class Player{
   speed = 4;
@@ -274,6 +300,8 @@ class Player{
   standRight;
   walkLeft;
   walkRight;
+  spoons;
+  inventory;
   higherStressStandL;
   higherStressStandR;
   higherStressWalkL;
@@ -288,6 +316,8 @@ class Player{
     this.yPos = 400;
     this.stress = 1;
     this.direction = 0;
+    this.spoons = 2;
+    this.inventory = [];
     this.standLeft = this.createAnimation("stand","Left", this.stress);
     this.standRight = this.createAnimation("stand","Right", this.stress);
     this.walkLeft = this.createAnimation("walk","Left", this.stress);
@@ -300,6 +330,10 @@ class Player{
     this.lowerStressStandR = this.createAnimation("stand", "Right", this.stress - 1);
     this.lowerStressWalkL = this.createAnimation("walk", "Left", this.stress - 1);
     this.lowerStressWalkR = this.createAnimation("walk", "Right", this.stress - 1);
+  }
+  setPos(x, y){
+    this.xPos = x;
+    this.yPos = y;
   }
   incrementStress(){
     if(this.stress < 15){
@@ -444,30 +478,44 @@ class Player{
 class HUD{
   ply;
   spoonIMG;
+  noSpoon;
   constructor(player){
     this.ply = player
     this.spoonIMG = loadImage("assets/spoon.png");
+    this.noSpoon = loadImage("assets/noSpoon.png");
   }
-  displaySpoon(i){
+  displaySpoons(){
     //console.log("displaySppon");
-    image(this.spoonIMG, 20 + i * 20, 550, 50, 50);
+    this.displayText("Spoons:", 1175, 560);
+    for(let i = 0; i < 3; i++){
+      if( i < this.ply.spoons){
+        image(this.spoonIMG, 1300 + i * 50, 550, 50, 50);
+      } else {
+        image(this.noSpoon, 1300 + i * 50, 550, 50, 50);
+      }
+    }
   }
   
-  displayBox(){
+  displayBottomBox(){
     fill(255,255,255);
     rect(1, 525, 1499, 100, 10, 10, 10, 10);
   }
-  displayTextBox(txt){
-    fill(255,255,255);
-    rect(1, 525, 1499, 100, 10, 10, 10, 10);
+  displayText(txt, x = 20, y = 560){
     textSize(24);
     fill(0, 0, 0);
-    text(txt, 10, 540, 1450, 400);
+    text(txt, x, y, 1450, 400);
+  }
+  displayInv(){
+    this.displayText("Inventory:");
+    for(let i = 0; i < this.ply.inventory.length; i++){
+      this.ply.inventory[i].displayItem(40 + i*50, 550);
+    }
   }
   displayHUD(){
     //console.log("displayingHUD");
-    this.displayTextBox("");
-    this.displaySpoon(0);
+    this.displayBottomBox();
+    this.displaySpoons();
+    this.displayInv();
   }
 }
 
@@ -480,6 +528,7 @@ function keyPressed(){
   } else if(debugMode && keyCode ==73){
     game.roomIndex = (game.roomIndex + 1) % game.roomArray.length;
     console.log(game.roomIndex);
+
   } else if(keyCode == 32 && game.nextRoomIndex){
     console.log("move?");
     game.roomIndex = game.nextRoomIndex;
@@ -490,8 +539,8 @@ function keyPressed(){
 
 
 function preload() {
-  game = new GameState();
   player = new Player();
+  game = new GameState();
 }
 
 function setup() {
@@ -506,6 +555,6 @@ function draw() {
   clear();
   background(200);
   game.runGame();
-  
+  console.log(player.xPos, player.yPos);
   //game.headsUp.displayTextBox("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.");
 }
