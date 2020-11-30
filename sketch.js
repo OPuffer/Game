@@ -22,7 +22,7 @@ class GameState{
   //dialogSet;
   constructor(){
     this.gameStarted = true;
-    this.roomIndex = 6;
+    this.roomIndex = 7;
     this.roomArrayTestSet = ["Test", new BreakfastDR(), new CommonRoom(), new HallWay1(), new HallWay2(), new HallWay3(), new NurseStation(), new Bedroom()];
     this.headsUp = new HUD(player);
     this.closestElement = false;
@@ -33,9 +33,9 @@ class GameState{
     this.breakfastSet = ["Breakfast\n\nGet \nFood!", new BreakfastDR(), new MorningCR(), new HallWay1(), new NoRoomHW2(), new NoBathroomHW3(), new NurseStation(), new Bedroom()];
     this.activitySet=["Activity Time\n\nDo \nActivity!", new DiningRoom(), new ActivityCR(), new HallWay1(), new HallWay2(), new NoBathroomHW3(), new NurseStation(), new ActivityBR()];
     this.lunchSet = ["Lunch Time\n\nGet \nFood!", new LunchDR(), new AfternoonCR(), new HallWay1(), new NoRoomHW2(), new NoBathroomHW3(), new NurseStation(), new Bedroom()];
-    this.evaluationSet =["Psych Eval\n\nGet \nEval!", new DiningRoom(), new AfternoonCR(), new HallWay1(), new NoRoomHW2(), new NoBathroomHW3(), new EvalNS(), new Bedroom()];
+    this.evaluationSet =["Psych Eval\n\nGet \nEval!", new afternoonDR(), new AfternoonCR(), new HallWay1(), new NoRoomHW2(), new NoBathroomHW3(), new EvalNS(), new Bedroom()];
     //SET "TIME" TO FIRST ROOMSET AT START
-    this.timeIndex = 4;
+    this.timeIndex = 0;
     this.timesArray=[this.earlySet, this.breakfastSet, this.activitySet, this.lunchSet, this.evaluationSet];
     this.currentTime = this.timesArray[this.timeIndex];
   }
@@ -76,6 +76,10 @@ class RoomElement{
     this.xPos = x;
     this.yPos = y;
     this.behindPlayer = behind;
+  }
+  noSpoons(){
+    game.headsUp.displayBottomBox(500);
+    game.headsUp.displayText("You dont have the spoons for this action!");
   }
   talk(){
     console.log("This Element has Nothing To Say!");
@@ -184,6 +188,7 @@ class breakfastTable extends InteractableElement{
     let item = player.searchInv("foodCabinet");
     if(item){
       this.interacted = true;
+      player.incrementSpoon();
       game.timeStep();
     } else{
       game.inDialog = true;
@@ -273,7 +278,7 @@ class VitalsCart extends InteractablePerson{
   currentWordIndex;
   constructor(imgName, appX, appY, x, y, behind = true){
     super(imgName, appX, appY, x, y, behind = true);
-    this.dialogSet=["Hello, Are you ready to check your vitals?\n Y)Yes N)No"];
+    this.dialogSet=["Hello, Are you ready to check your vitals? (This Will Expend 1 Spoon)\n Y)Yes N)No"];
     this.doublePressLock = false;
     this.currentWordIndex = 0;
   }
@@ -288,7 +293,11 @@ class VitalsCart extends InteractablePerson{
     if(!this.interacted){
     game.headsUp.displayBottomBox(500);
     game.headsUp.displayText(this.dialogSet[this.currentWordIndex]);
-    if(keyIsDown(89) && !this.doublePressLock){
+    //SPOON HANDLING
+    let isSpoon = player.hasSpoons();
+
+    if(keyIsDown(89) && !this.doublePressLock && isSpoon){
+      player.decrementSpoon();//SPOONS
       this.doublePressLock = true;
       game.inDialog = false;
       this.actualInteract();
@@ -413,7 +422,7 @@ class ARARROW extends InteractableElement{
   currentWordIndex;
   constructor(imgName, appX, appY, x, y, behind){
     super(imgName, appX, appY, x, y, behind);
-    this.dialogSet=["Would you like to participate today, or stay in your room?\n Y)Participate N)Not Sure", "What Do you want to Paint?\n Y)Something Funny N)Something Sad", "Sombody Said your painting looked ugly :(\n Y)okay...", "Someone Liked your Painting! \n Y)YES!"];
+    this.dialogSet=["Would you like to participate today, or stay in your room?(This will Expend one Spoon)\n Y)Participate N)Not Sure", "What Do you want to Paint?\n Y)Something Funny N)Something Sad", "Sombody Said your painting looked ugly :(\n Y)okay...", "Someone Liked your Painting! \n Y)YES!"];
     this.doublePressLock = true;
     this.currentWordIndex = 0;
   }
@@ -469,13 +478,15 @@ class ARARROW extends InteractableElement{
     if(!this.interacted){
       game.headsUp.displayBottomBox(500);
       game.headsUp.displayText(this.dialogSet[this.currentWordIndex]);
+      let spoons = player.hasSpoons();
       if(this.currentWordIndex == 1){
         this.runPaintingActivity();
       } else if (this.currentWordIndex > 1){
         this.runJudgement();
       } else {
 
-        if(keyIsDown(89) && !this.doublePressLock){
+        if(keyIsDown(89) && !this.doublePressLock && spoons){
+          player.decrementSpoon();
           this.doublePressLock = true;
           this.currentWordIndex++;
         }else if(keyIsDown(78) && !this.doublePressLock){
@@ -700,6 +711,12 @@ class DiningRoom extends Room{
     return super.isValidPosition(vx, vy) && (vx >=785|| (vx < 785 && vy < 292));
   }
 }
+class afternoonDR extends DiningRoom{
+  constructor(){
+    super()
+    this.background =loadImage("assets/rooms/afternoonDR.png");
+  }
+}
 class BreakfastDR extends DiningRoom{
   constructor(){
     super()
@@ -815,7 +832,7 @@ class Player{
     this.yPos = 400;
     this.stress = 10;
     this.direction = 0;
-    this.spoons = 3;
+    this.spoons = 1;
     this.keyReleased = true;
     this.inventory = [];
     this.standLeft = this.createAnimation("stand","Left", this.stress);
@@ -830,6 +847,21 @@ class Player{
     this.lowerStressStandR = this.createAnimation("stand", "Right", this.stress - 1);
     this.lowerStressWalkL = this.createAnimation("walk", "Left", this.stress - 1);
     this.lowerStressWalkR = this.createAnimation("walk", "Right", this.stress - 1);
+  }
+  hasSpoons(){
+    return this.spoons > 0;
+  }
+  incrementSpoon(){
+    if(this.spoons < 3){
+      this.spoons = (this.spoons + 1);
+    }
+  }
+  decrementSpoon(){
+    if(this.spoons > 0){
+      this.spoons = (this.spoons -1);
+      return true;
+    }
+    return false;
   }
   haveItem(name){
     for(let i = 0; i < this.inventory.length; i++){
