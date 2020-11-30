@@ -10,16 +10,17 @@ class GameState{
   nextRoomIndex;
   headsUp;
   currentTime;
+  closestElement;
   earlyMorningSet;
   breakfastSet;
   activityTimeSet;
   lunchSet;
   constructor(){
     this.gameStarted = true;
-    this.roomIndex = 7;
+    this.roomIndex = 1;
     this.roomArrayTestSet = [new Room(), new BreakfastDR(), new CommonRoom(), new HallWay1(), new HallWay2(), new HallWay3(), new NurseStation(), new Bedroom()];
     this.headsUp = new HUD(player);
-
+    this.closestElement = false;
     //INIT ACTUAL ROOMSETS
     this.earlySet =[new Room(), new Room(), new Room(), new HallWay1(), new HallWay2(), new HallWay3(), new earlyMorningNS, new EarlyBR()];
     this.breakfastSet = [new Room(), new BreakfastDR(), new MorningCR(), new HallWay1(), new NoRoomHW2(), new NoBathroomHW3(), new NurseStation(), new Room()];
@@ -27,7 +28,7 @@ class GameState{
     this.lunchSet = [new Room(), new LunchDR(), new AfternoonCR(), new HallWay1(), new NoRoomHW2(), new NoBathroomHW3(), new NurseStation(), new ActivityBR()];
     
     //SET "TIME" TO FIRST ROOMSET AT START
-    this.currentTime = this.earlySet;
+    this.currentTime = this.breakfastSet;
   }
   runCurrentRoom(){
     this.currentTime[this.roomIndex].runRoom();
@@ -88,6 +89,7 @@ class InteractableElement extends RoomElement{
 
   displayElem(){
     if (this.distanceFromCenter(player) < 200){
+      game.closestElement = this;
       if (!this.behindPlayer){
         this.drawElemM();
       }
@@ -98,6 +100,7 @@ class InteractableElement extends RoomElement{
   }
   displayBehind(){
     if (this.distanceFromCenter(player) < 200){
+      game.closestElement = this;
       if (this.behindPlayer){
         this.drawElemM();
       }
@@ -151,6 +154,20 @@ class CollectableElement extends InteractableElement{
     }
   }
 }
+class FoodCabinet extends CollectableElement{
+  constructor(imgName, appX, appY, x, y, behind){
+    super(imgName, appX, appY, x, y, behind);
+  }
+
+  
+  
+  interact(){
+    if(!this.collected){
+      this.collected = true;
+      player.inventory.push(new invItem(this.itemName));
+    }
+  }
+}
 
 
 class Room{
@@ -158,6 +175,7 @@ class Room{
   horizontalLength;
   arrows;
   roomElems;
+  
   constructor(){
     this.arrows = [];
     this.roomElems = [];
@@ -347,7 +365,7 @@ class DiningRoom extends Room{
 class BreakfastDR extends DiningRoom{
   constructor(){
     super()
-    this.roomElems[1] = new InteractableElement("foodCabinet", 1140, 208, 600, -175, true);
+    this.roomElems[1] = new FoodCabinet("foodCabinet", 1140, 208, 600, -175, true);
   }
 }
 class LunchDR extends DiningRoom{
@@ -380,7 +398,7 @@ class EarlyBR extends Bedroom{
   constructor(){
     super();
     this.roomElems.push(new RoomElement("bed", 0, 0, true));
-    this.roomElems.push(new InteractableElement("whale", 180, 428, 0, 0, true));
+    this.roomElems.push(new CollectableElement("whale", 180, 428, 0, 0, true));
   }
 }
 
@@ -450,13 +468,16 @@ class Player{
   lowerStressWalkL;
   lowerStressWalkR;
 
+  keyReleased;
+
   constructor(){
     this.xPos = 800;
     this.yPos = 400;
     this.stress = 1;
     this.direction = 0;
     this.spoons = 2;
-    this.inventory = [new invItem("whale"), new invItem("whale")];
+    this.keyReleased = true;
+    this.inventory = [];
     this.standLeft = this.createAnimation("stand","Left", this.stress);
     this.standRight = this.createAnimation("stand","Right", this.stress);
     this.walkLeft = this.createAnimation("walk","Left", this.stress);
@@ -602,9 +623,21 @@ class Player{
       } else {
         animation(this.walkLeft, this.xPos, this.yPos)
       }
+
+    //This will handle INTERACTIONS!
+    } else if(keyIsDown(32)) {
+      this.displayPlayer();
+      if(this.keyReleased == true){
+        this.keyReleased = false;
+        if(game.closestElement != false){
+          game.closestElement.interact();
+        }
+        console.log("Interact ONCE!");
+      }
     }
     //DO NOTHING
     else{
+      this.keyReleased = true;
       this.displayPlayer();
     }
   }
