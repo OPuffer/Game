@@ -22,7 +22,7 @@ class GameState{
   //dialogSet;
   constructor(){
     this.gameStarted = true;
-    this.roomIndex = 7;
+    this.roomIndex = 6;
     this.roomArrayTestSet = ["Test", new BreakfastDR(), new CommonRoom(), new HallWay1(), new HallWay2(), new HallWay3(), new NurseStation(), new Bedroom()];
     this.headsUp = new HUD(player);
     this.closestElement = false;
@@ -33,9 +33,9 @@ class GameState{
     this.breakfastSet = ["Breakfast\n\nGet \nFood!", new BreakfastDR(), new MorningCR(), new HallWay1(), new NoRoomHW2(), new NoBathroomHW3(), new NurseStation(), new Bedroom()];
     this.activitySet=["Activity Time\n\nDo \nActivity!", new DiningRoom(), new ActivityCR(), new HallWay1(), new HallWay2(), new NoBathroomHW3(), new NurseStation(), new ActivityBR()];
     this.lunchSet = ["Lunch Time\n\nGet \nFood!", new LunchDR(), new AfternoonCR(), new HallWay1(), new NoRoomHW2(), new NoBathroomHW3(), new NurseStation(), new Bedroom()];
-    this.evaluationSet =["Psych Eval\n\nGet \nEval!", new DiningRoom(), new AfternoonCR(), new HallWay1(), new NoRoomHW2(), new NoBathroomHW3(), new NurseStation(), new Bedroom()];
+    this.evaluationSet =["Psych Eval\n\nGet \nEval!", new DiningRoom(), new AfternoonCR(), new HallWay1(), new NoRoomHW2(), new NoBathroomHW3(), new EvalNS(), new Bedroom()];
     //SET "TIME" TO FIRST ROOMSET AT START
-    this.timeIndex = 2;
+    this.timeIndex = 4;
     this.timesArray=[this.earlySet, this.breakfastSet, this.activitySet, this.lunchSet, this.evaluationSet];
     this.currentTime = this.timesArray[this.timeIndex];
   }
@@ -304,6 +304,38 @@ class VitalsCart extends InteractablePerson{
   }
   interact(){
     game.inDialog = true;
+  }
+}
+class NSPersonEval extends InteractablePerson{
+  constructor(imgName, appX, appY, x, y, behind = true){
+    super(imgName, appX, appY, x, y, behind = true);
+  }
+  interact(){
+    game.inDialog = true;
+  }
+  talk(){
+    if(!this.interacted){
+
+      let boxColor = color(255, 255, 255)
+      boxColor.setAlpha(500);
+      fill(boxColor);
+      rect(50, 10, 1400, 600, 10, 10, 10, 10);
+      textSize(30);
+      fill(0,0, 0);
+      text("GameOver", 650, 50, 1450, 400);
+      if(player.stress <= 9){
+        fill(8, 138, 36);
+        text("Reccomendation: Discharge Patient", 515, 200, 1450, 400);
+      } else{
+        fill(176, 9, 39);
+        text("Reccomendation: Extend term", 515, 200, 1450, 400);
+      }
+      fill(0, 0, 0);
+      text("Stats:", 200, 250, 1450, 400);
+
+    } else {
+      game.inDialog = false;
+    }
   }
 }
 class CollectableElement extends InteractableElement{
@@ -613,6 +645,12 @@ class earlyMorningNS extends NurseStation{
     this.roomElems.push(new VitalsCart("vitalsCart", 608, 384, 500, 200));
   }
 }
+class EvalNS extends NurseStation{
+  constructor(){
+    super();
+    this.roomElems[0] = new NSPersonEval("deskNurse", 848, 384, 760, 190, true);
+  }
+}
 class CommonRoom extends Room{
   constructor(){
     super();
@@ -704,7 +742,6 @@ class EarlyBR extends Bedroom{
     this.roomElems.push(new CollectableElement("whale", 180, 428, 0, 0, true));
   }
 }
-
 
 class arrow{
   xPos;
