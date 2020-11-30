@@ -11,17 +11,18 @@ class GameState{
   headsUp;
   currentTime;
   closestElement;
-  earlyMorningSet;
+  earlySet;
   breakfastSet;
-  activityTimeSet;
+  activitySet;
   lunchSet;
+  evaluationSet;
   timeIndex;
   timesArray;
   inDialog;
   //dialogSet;
   constructor(){
     this.gameStarted = true;
-    this.roomIndex = 1;
+    this.roomIndex = 7;
     this.roomArrayTestSet = ["Test", new BreakfastDR(), new CommonRoom(), new HallWay1(), new HallWay2(), new HallWay3(), new NurseStation(), new Bedroom()];
     this.headsUp = new HUD(player);
     this.closestElement = false;
@@ -31,11 +32,11 @@ class GameState{
     this.earlySet =["Early\nMorning\nCheck \nVitals!", new Room(), new Room(), new HallWay1(), new HallWay2(), new HallWay3(), new earlyMorningNS, new EarlyBR()];
     this.breakfastSet = ["Breakfast\n\nGet \nFood!", new BreakfastDR(), new MorningCR(), new HallWay1(), new NoRoomHW2(), new NoBathroomHW3(), new NurseStation(), new Bedroom()];
     this.activitySet=["Activity Time\n\nDo \nActivity!", new DiningRoom(), new ActivityCR(), new HallWay1(), new HallWay2(), new NoBathroomHW3(), new NurseStation(), new ActivityBR()];
-    this.lunchSet = ["Lunch Time\n\nGet \nFood!", new LunchDR(), new AfternoonCR(), new HallWay1(), new NoRoomHW2(), new NoBathroomHW3(), new NurseStation(), new ActivityBR()];
-    
+    this.lunchSet = ["Lunch Time\n\nGet \nFood!", new LunchDR(), new AfternoonCR(), new HallWay1(), new NoRoomHW2(), new NoBathroomHW3(), new NurseStation(), new Bedroom()];
+    this.evaluationSet =["Psych Eval\n\nGet \nEval!", new DiningRoom(), new AfternoonCR(), new HallWay1(), new NoRoomHW2(), new NoBathroomHW3(), new NurseStation(), new Bedroom()];
     //SET "TIME" TO FIRST ROOMSET AT START
-    this.timeIndex = 1;
-    this.timesArray=[this.earlySet, this.breakfastSet, this.activitySet, this.lunchSet];
+    this.timeIndex = 2;
+    this.timesArray=[this.earlySet, this.breakfastSet, this.activitySet, this.lunchSet, this.evaluationSet];
     this.currentTime = this.timesArray[this.timeIndex];
   }
   displayDialog(){
@@ -61,7 +62,7 @@ class GameState{
   }
   timeStep(){
     this.timeIndex++;
-    player.spoons = 3;
+    //player.spoons = 3;
   }
 }
 
@@ -157,17 +158,20 @@ class breakfastTable extends InteractableElement{
     this.doublePressLock = true;
     this.currentWordIndex = 0;
   }
+  /*
   actualInteract(){
     let item = player.searchInv("foodCabinet");
     if(item){
       game.timeStep();
     }
   }
+  */
   talk(){
     if(!this.interacted){
       game.headsUp.displayBottomBox(500);
       game.headsUp.displayText(this.dialogSet[this.currentWordIndex]);
       if(keyIsDown(89) && !this.doublePressLock){
+        //this.interacted = true;
         game.inDialog = false;
       }else if(!keyIsDown(78)) {
         this.doublePressLock = false;
@@ -186,6 +190,66 @@ class breakfastTable extends InteractableElement{
     }
   }
 
+}
+class activityBed extends InteractableElement{
+  dialogSet;
+  doublePressLock;
+  currentWordIndex;
+  constructor(imgName, appX, appY, x, y, behind){
+    super(imgName, appX, appY, x, y, behind);
+    this.dialogSet=["Would you like to spend Activity Time in your room? \n Y)Yes N)Not Sure", "You sat in bed by yourself\n Y)Okay", "You read the book!\n Y)Nice!"];
+    this.doublePressLock = true;
+    this.currentWordIndex = 0;
+  }
+
+  talk(){
+    if(!this.interacted){
+      game.headsUp.displayBottomBox(500);
+      game.headsUp.displayText(this.dialogSet[this.currentWordIndex]);
+      if(this.currentWordIndex > 0){
+
+        if(keyIsDown(89) && !this.doublePressLock){
+          this.doublePressLock = true;
+          if(this.currentWordIndex ==1){
+            player.decrementStress();
+            this.interacted = true;
+          } else {
+            player.decrementStress();
+            player.decrementStress();
+            player.decrementStress();
+            this.interacted = true;
+          }
+          game.inDialog = false;
+          game.timeStep();
+        } else if(!keyIsDown(89)){
+          this.doublePressLock = false;
+        }
+
+      } else {
+        let hasItem = player.haveItem("book");
+        
+        if(keyIsDown(89) && !this.doublePressLock){
+          this.doublePressLock = true;
+          if(hasItem){
+            this.currentWordIndex = 2;
+          }else {
+            this.currentWordIndex = 1;
+          }
+        }else if(keyIsDown(78) && !this.doublePressLock){
+          this.doublePressLock = true;
+          game.inDialog = false;
+        }else if(!keyIsDown(78) && !keyIsDown(89)) {
+          this.doublePressLock = false;
+        }
+      }
+    } else {
+      game.inDialog = false;
+    }
+  }
+  interact(){
+    game.inDialog = true;
+  }
+  
 }
 class InteractablePerson extends InteractableElement{
   underImg;
@@ -215,6 +279,7 @@ class VitalsCart extends InteractablePerson{
   }
   actualInteract(){
     if(!this.interacted){
+      
       this.interacted = true;
       game.timeStep();
     }
@@ -306,6 +371,100 @@ class Dispenser extends CollectableElement{
       this.interacted = true;
       player.inventory.push(new invItem(this.itemName));
     }
+  }
+
+}
+
+class ARARROW extends InteractableElement{
+  dialogSet;
+  doublePressLock;
+  currentWordIndex;
+  constructor(imgName, appX, appY, x, y, behind){
+    super(imgName, appX, appY, x, y, behind);
+    this.dialogSet=["Would you like to participate today, or stay in your room?\n Y)Participate N)Not Sure", "What Do you want to Paint?\n Y)Something Funny N)Something Sad", "Sombody Said your painting looked ugly :(\n Y)okay...", "Someone Liked your Painting! \n Y)YES!"];
+    this.doublePressLock = true;
+    this.currentWordIndex = 0;
+  }
+  /*
+  actualInteract(){
+    let item = player.searchInv("foodCabinet");
+    if(item){
+      game.timeStep();
+    }
+  }
+  */
+  runPaintingActivity(){
+    let ranNum = Math.floor(Math.random() * 10);
+    if(keyIsDown(89) && !this.doublePressLock){
+      this.doublePressLock = true;
+      if(ranNum > 7){
+        this.currentWordIndex = 3;
+      } else {
+        this.currentWordIndex = 2
+      }
+    }else if(keyIsDown(78) && !this.doublePressLock){
+      this.doublePressLock = true;
+      if(ranNum > 6){
+        this.currentWordIndex = 3;
+      } else {
+        this.currentWordIndex = 2
+      }
+    }else if(!keyIsDown(78) && !keyIsDown(89)) {
+          this.doublePressLock = false;
+    }
+  }
+  runJudgement(){
+    if(keyIsDown(89) && !this.doublePressLock){
+      this.doublePressLock = true;
+      game.inDialog = false;
+      if(this.currentWordIndex == 3){
+        player.decrementStress();
+        player.decrementStress();
+        player.decrementStress();
+        player.decrementStress();
+      } else {
+        player.incrementStress();
+        player.incrementStress();
+        player.incrementStress();
+      }
+      game.timeStep();
+      this.interacted = true;
+    } else if(!keyIsDown(89)) {
+      this.doublePressLock = false;
+    }
+  }
+  talk(){
+    if(!this.interacted){
+      game.headsUp.displayBottomBox(500);
+      game.headsUp.displayText(this.dialogSet[this.currentWordIndex]);
+      if(this.currentWordIndex == 1){
+        this.runPaintingActivity();
+      } else if (this.currentWordIndex > 1){
+        this.runJudgement();
+      } else {
+
+        if(keyIsDown(89) && !this.doublePressLock){
+          this.doublePressLock = true;
+          this.currentWordIndex++;
+        }else if(keyIsDown(78) && !this.doublePressLock){
+          this.doublePressLock = true;
+          game.inDialog = false;
+        }else if(!keyIsDown(78) && !keyIsDown(89)) {
+          this.doublePressLock = false;
+        }
+      }
+    } else {
+      game.inDialog = false;
+    }
+  }
+  interact(){
+    /*let item = player.searchInv("foodCabinet");
+    if(item){
+      this.interacted = true;
+      game.timeStep();
+    } else{*/
+    game.inDialog = true;
+    //}
   }
 
 }
@@ -480,7 +639,7 @@ class AfternoonCR extends CommonRoom{
 class ActivityCR extends AfternoonCR{
   constructor(){
     super();
-    this.arrows.push(new arrow("leftDoorArrow", 169, 266, 0 ,10, 200));
+    this.roomElems.push(new ARARROW("leftDoorArrow", 169, 266, -30 , -100, 200));
   }
 }
 class MorningCR extends CommonRoom{
@@ -514,6 +673,8 @@ class LunchDR extends DiningRoom{
   constructor(){
     super();
     this.background =loadImage("assets/rooms/afternoonDR.png");
+    this.roomElems[1] = new Dispenser("foodCabinet", 1140, 208, 600, -175, true);
+    this.roomElems[0] = new breakfastTable("diningTable", 440, 288, 0, 0, false);
   }
 }
 class Bedroom extends Room{
@@ -533,7 +694,7 @@ class Bedroom extends Room{
 class ActivityBR extends Bedroom{
   constructor(){
     super();
-    this.roomElems.push(new InteractableElement("bed", 1080, 400, 0, 0, true));
+    this.roomElems.push(new activityBed("bed", 1080, 400, 0, 0, true));
   }
 }
 class EarlyBR extends Bedroom{
@@ -632,6 +793,15 @@ class Player{
     this.lowerStressStandR = this.createAnimation("stand", "Right", this.stress - 1);
     this.lowerStressWalkL = this.createAnimation("walk", "Left", this.stress - 1);
     this.lowerStressWalkR = this.createAnimation("walk", "Right", this.stress - 1);
+  }
+  haveItem(name){
+    for(let i = 0; i < this.inventory.length; i++){
+      let elem = this.inventory[i];
+      if(elem.name ==name){
+        return true;
+      }
+    }
+    return false;
   }
   searchInv(name){
     for(let i = 0; i < this.inventory.length; i++){
