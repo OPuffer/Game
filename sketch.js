@@ -64,7 +64,10 @@ class RoomElement{
     }
   }
   distanceFromCenter(player){
-    return Math.abs(this.apparentX - player.xPos) + Math.abs(this.apparentY - player.yPos);
+    return Math.pow(10, 1000); //Largest Possible positive number
+  }
+  interact(){
+    console.log("This has no interaction!");
   }
 
 }
@@ -102,6 +105,9 @@ class InteractableElement extends RoomElement{
       super.displayBehind();
     }
   }
+  distanceFromCenter(player){
+    return Math.abs(this.apparentX - player.xPos) + Math.abs(this.apparentY - player.yPos);
+  }
 
 }
 class InteractablePerson extends InteractableElement{
@@ -118,6 +124,31 @@ class InteractablePerson extends InteractableElement{
   drawElemM(){
     image(this.underImg, 0, 0);
     super.drawElemM();
+  }
+}
+class CollectableElement extends InteractableElement{
+  collected;
+  itemName;
+  constructor(imgName, appX, appY, x, y, behind){
+    super(imgName, appX, appY, x, y, behind);
+    this.collected = false;
+    this.itemName = imgName;
+  }
+  displayElem(){
+    if(!this.collected){
+      super.displayElem();
+    }
+  }
+  displayBehind(){
+    if(!this.collected){
+      super.displayBehind();
+    }
+  }
+  interact(){
+    if(!this.collected){
+      this.collected = true;
+      player.inventory.push(new invItem(this.itemName));
+    }
   }
 }
 
@@ -394,9 +425,10 @@ class invItem{
     this.imgFile = loadImage(`assets/inventory/${name}.png`);
   }
   displayItem(x, y){
-    image(imgFile, x, y);
+    image(this.imgFile, x, y, 75, 75);
   }
 }
+
 class Player{
   speed = 4;
   direction; //-1 = Left 1 = Right
@@ -424,7 +456,7 @@ class Player{
     this.stress = 1;
     this.direction = 0;
     this.spoons = 2;
-    this.inventory = [];
+    this.inventory = [new invItem("whale"), new invItem("whale")];
     this.standLeft = this.createAnimation("stand","Left", this.stress);
     this.standRight = this.createAnimation("stand","Right", this.stress);
     this.walkLeft = this.createAnimation("walk","Left", this.stress);
@@ -615,7 +647,7 @@ class HUD{
   displayInv(){
     this.displayText("Inventory:");
     for(let i = 0; i < this.ply.inventory.length; i++){
-      this.ply.inventory[i].displayItem(40 + i*50, 550);
+      this.ply.inventory[i].displayItem(130 + i*50, 530);
     }
   }
   displayHUD(){
