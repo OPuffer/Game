@@ -181,6 +181,7 @@ class WindowElem extends InteractableElement{
       if(keyIsDown(89) && !this.doublePressLock){
         player.incrementStress();
         game.inDialog = false;
+        player.tasks[3]++;
       }else if(!keyIsDown(78)) {
         this.doublePressLock = false;
       }
@@ -309,6 +310,57 @@ class InteractablePerson extends InteractableElement{
     super.drawElemM();
   }
 }
+class frontDeskNurse extends InteractablePerson{
+  dialogSet;
+  doublePressLock;
+  currentWordIndex;
+  constructor(imgName, appX, appY, x, y, behind = true){
+    super(imgName, appX, appY, x, y, behind = true);
+    this.dialogSet=["What do you want?\n Y) Could I have some Toiletries?(This will expend One Spoon)  N) Nothing...", "You really should've brought your own\n Y) ...*sigh*"];
+    this.doublePressLock = false;
+    this.currentWordIndex = 0;
+  }
+  actualInteract(){
+    player.incrementStress();
+    player.inventory.push(new invItem("toiletries"));
+    this.interacted = true;
+  }
+  talk(){
+    if(!this.interacted){
+    game.headsUp.displayBottomBox(500);
+    game.headsUp.displayText(this.dialogSet[this.currentWordIndex]);
+    //SPOON HANDLING
+    let isSpoon = player.hasSpoons();
+
+    if(this.currentWordIndex == 0){
+      if(keyIsDown(89) && !this.doublePressLock && isSpoon){
+        player.decrementSpoon();//SPOONS
+        this.doublePressLock = true;
+        this.currentWordIndex++;
+      } else if(keyIsDown(78) && !this.doublePressLock){
+        game.inDialog = false;
+      }else{
+        this.doublePressLock = false;
+      }
+    } else if(this.currentWordIndex == 1){
+
+      if(keyIsDown(89) && !this.doublePressLock){
+        player.decrementSpoon();//SPOONS
+        this.doublePressLock = true;
+        game.inDialog = false;
+        this.actualInteract();
+      } else if (!keyIsDown(89)) {
+        this.doublePressLock = false;
+      }
+    }
+  } else{
+    game.inDialog = false;
+  }
+  }
+  interact(){
+    game.inDialog = true;
+  }
+}
 class Payphone extends InteractableElement{
   dialogSet;
   doublePressLock;
@@ -334,7 +386,8 @@ class Payphone extends InteractableElement{
         //player.decrementSpoon();//SPOONS
         this.doublePressLock = true;
         game.inDialog = false;
-        this.interacted = true;
+        //this.interacted = true;
+        player.tasks[4]++;
         player.incrementStress();
       }else{
         this.doublePressLock = false;
@@ -413,18 +466,62 @@ class NSPersonEval extends InteractablePerson{
       textSize(30);
       fill(0,0, 0);
       text("GameOver", 650, 50, 1450, 400);
-      if(player.stress <= 9){
+      if(player.stress <= 8 && player.tasks[2]){
         fill(8, 138, 36);
-        text("Reccomendation: Discharge Patient", 515, 200, 1450, 400);
+        text("Reccomendation: Discharge Patient", 515, 100, 1450, 400);
       } else{
         fill(176, 9, 39);
-        text("Reccomendation: Extend term", 515, 200, 1450, 400);
+        text("Reccomendation: Extend term", 515, 100, 1450, 400);
       }
       
-      /*
       fill(0, 0, 0);
-      text("Stats:", 200, 250, 1450, 400);
-      */
+      text("Breakdown:", 100, 200, 1450, 400);
+      if(player.stress <= 8){
+        fill(8, 138, 36);
+        text("Observed Distress: Low", 100, 250, 1450, 400);
+      } else {
+        fill(176, 9, 39);
+        text("Observed Distress: High -- REQUIRES EXTENDED TERM", 100, 250, 1450, 400);
+      }
+      if(player.tasks[0]){
+        fill(8, 138, 36);
+        text("Personal Hygiene: Good -(Cleanliness is close to godliness!)", 100, 300, 1450, 400);
+      } else {
+        fill(176, 9, 39);
+        text("Personal Hygiene: Poor -(Subject has bad breath) -(Ew)", 100, 300, 1450, 400);
+      }
+      if(player.tasks[2]){
+        fill(8, 138, 36);
+        text("Participation: Good!", 100, 350, 1450, 400);
+      } else {
+        fill(176, 9, 39);
+        text("Participation: Unsatisfactory --AUTOMATIC RECCOMENDATION FOR EXTENDED TERM", 100, 350, 1450, 400);
+      }
+      fill(0, 0, 0);
+      text("Personal Notes:", 100, 400, 1450, 400);
+      if(player.tasks[3] ==1){
+        text(`You looked out the window, and wont be making THAT mistake again`, 100, 450, 1450, 400);
+      } else if(player.tasks[3] >1)  {
+        text(`You looked out the window ${player.tasks[3]} times! Stop Doing that!`, 100, 450, 1450, 400);
+      } else {
+        text(`You never glanced out the window.`, 100, 450, 1450, 400);
+      }
+
+      if(player.tasks[4] ==1){
+        text(`You tried to call someone, but they never answered.`, 100, 500, 1450, 400);
+      } else if(player.tasks[3] >1)  {
+        text(`You tried calling people ${player.tasks[3]} times, and nobody answered. NERD!`, 100, 500, 1450, 400);
+      } else {
+        text(`You never tried to call anyone`, 100, 500, 1450, 400);
+      }
+
+      let whale = player.haveItem("whale");
+      if(whale){
+        text(`You saved the whale`, 100, 550, 1450, 400);
+      } else {
+        text(`You did not save the whale`, 100, 550, 1450, 400);
+      }
+    
     }
   }
 }
@@ -551,6 +648,7 @@ class ARARROW extends InteractableElement{
       }
       game.timeStep();
       this.interacted = true;
+      player.tasks[2] = true;
     } else if(!keyIsDown(89)) {
       this.doublePressLock = false;
     }
@@ -591,6 +689,80 @@ class ARARROW extends InteractableElement{
     //}
   }
 
+}
+class BathroomArrow extends InteractableElement{
+  dialogSet;
+  doublePressLock;
+  currentWordIndex;
+  constructor(imgName, appX, appY, x, y, behind){
+    super(imgName, appX, appY, x, y, behind);
+    this.dialogSet=["Do you want to brush your teeth?\n Y) Yes N) No", "You dont have a toothbrush!\n Y) Okay", "You brush your teeth and feel ready for the day.\n Y) YES!"];
+    this.doublePressLock = true;
+    this.currentWordIndex = 0;
+  }
+  
+  brushTeeth(){
+    if(keyIsDown(89) && !this.doublePressLock){
+      this.doublePressLock = true;
+      this.interacted = true;
+      game.inDialog = false;
+      player.incrementSpoon();
+      player.incrementSpoon();
+      player.incrementSpoon();
+      player.decrementStress();
+      player.decrementStress();
+      player.tasks[0] = true;
+
+    } else if(!keyIsDown(89)) {
+      this.doublePressLock = false;
+    }
+
+  }
+  noToothBrush(){
+    //Not Implemented yet
+    if(keyIsDown(89) && !this.doublePressLock){
+      this.doublePressLock = true;
+      this.currentWordIndex = 0;
+      game.inDialog = false;
+    } else if(!keyIsDown(89)) {
+      this.doublePressLock = false;
+    }
+
+  }
+  talk(){
+    if(!this.interacted){
+      game.headsUp.displayBottomBox(500);
+      game.headsUp.displayText(this.dialogSet[this.currentWordIndex]);
+      let hasToilet = player.haveItem("toiletries");
+      console.log(hasToilet);
+      if(this.currentWordIndex == 1){
+        this.noToothBrush();
+      }else if(this.currentWordIndex ==2){
+        this.brushTeeth();
+      } else {
+
+        if(keyIsDown(89) && !this.doublePressLock && !hasToilet){
+          console.log("yes!");
+          this.doublePressLock = true;
+          this.currentWordIndex = 1;
+        }else if(keyIsDown(89) && !this.doublePressLock && hasToilet){
+          this.doublePressLock = true;
+          this.currentWordIndex =2;
+        }else if(keyIsDown(78) && !this.doublePressLock){
+          this.doublePressLock = true;
+          game.inDialog = false;
+        }else if(!keyIsDown(78) && !keyIsDown(89)) {
+          this.doublePressLock = false;
+        }
+      }
+    } else {
+      game.inDialog = false;
+    }
+  }
+  interact(){
+    game.inDialog = true;
+    
+  }
 }
 
 
@@ -694,14 +866,15 @@ class HallWay3 extends HallWay{
   constructor(){
     super();
     this.background = loadImage("assets/rooms/hallway3.png");
-    this.arrows = [new arrow("backArrow", 731, 558, 4), new arrow("leftDoorArrow", 286, 397, 0)];//, new arrow("rightDoorArrow", 1171, 425, 0)];
+    this.arrows = [new arrow("backArrow", 731, 558, 4)];//, new arrow("leftDoorArrow", 286, 397, 0)];//, new arrow("rightDoorArrow", 1171, 425, 0)];
+    this.roomElems.push(new BathroomArrow("leftDoorArrow", 308, 308, 0, 0, true));
   }
 }
 class NoBathroomHW3 extends HallWay{
   constructor(){
     super();
     this.background = loadImage("assets/rooms/hallway3.png");
-    this.arrows = [new arrow("backArrow", 731, 558, 4)];
+    
   }
 }
 class NurseStation extends Room{
@@ -735,6 +908,7 @@ class earlyMorningNS extends NurseStation{
     super();
     this.arrows = [new arrow("rightArrow", 1300, 405, 4, 0, -80)];
     this.roomElems.push(new VitalsCart("vitalsCart", 608, 384, 500, 200));
+    this.roomElems[0]= new frontDeskNurse("deskNurse", 924, 384, 750, 200, true);
   }
 }
 class EvalNS extends NurseStation{
@@ -922,7 +1096,7 @@ class Player{
   lowerStressWalkR;
 
   keyReleased;
-
+  tasks;
   constructor(){
     this.xPos = 800;
     this.yPos = 400;
@@ -935,6 +1109,7 @@ class Player{
     this.standRight = this.createAnimation("stand","Right", this.stress);
     this.walkLeft = this.createAnimation("walk","Left", this.stress);
     this.walkRight = this.createAnimation("walk","Right", this.stress);
+    this.tasks =[false, false, false, 0, 0];
     this.higherStressStandL = this.createAnimation("stand","Left", this.stress + 1);
     this.higherStressStandR = this.createAnimation("stand","Right", this.stress +1);
     this.higherStressWalkL  = this.createAnimation("walk","Left", this.stress + 1);
