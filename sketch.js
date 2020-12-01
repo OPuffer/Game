@@ -1,6 +1,6 @@
 let player;
 let game;
-let debugMode = true;
+let debugMode = false;
 
 
 class GameState{
@@ -107,6 +107,15 @@ class RoomElement{
   }
 
 }
+class CoffeeKid extends RoomElement{
+  anim;
+  constructor(x, y, behind = true){
+    super("diningRoomCoffee/2", x, y, behind = false);
+    //this.anim = loadAnimation("assets/roomElem/diningRoomCoffee/1.png","assets/roomElem/diningRoomCoffee/2.png","assets/roomElem/diningRoomCoffee/3.png","assets/roomElem/diningRoomCoffee/4.png", "assets/roomElem/diningRoomCoffee/5.png","assets/roomElem/diningRoomCoffee/6.png","assets/roomElem/diningRoomCoffee/7.png");
+  }
+  
+  
+}
 class InteractableElement extends RoomElement{
   imgFileM;
   apparentX;
@@ -151,6 +160,34 @@ class InteractableElement extends RoomElement{
     return Math.abs(this.apparentX - player.xPos) + Math.abs(this.apparentY - player.yPos);
   }
 
+}
+class WindowElem extends InteractableElement{
+  dialogSet;
+  doublePressLock;
+  currentWordIndex;
+  constructor(imgName, appX, appY, x, y, behind){
+    super(imgName, appX, appY, x, y, behind);
+    this.dialogSet=["There are bars on these windows :( \n Y) oof"];
+    this.doublePressLock = true;
+    this.currentWordIndex = 0;
+  }
+  interact(){
+    game.inDialog = true;
+  }
+  talk(){
+    if(!this.interacted){
+      game.headsUp.displayBottomBox(500);
+      game.headsUp.displayText(this.dialogSet[this.currentWordIndex]);
+      if(keyIsDown(89) && !this.doublePressLock){
+        player.incrementStress();
+        game.inDialog = false;
+      }else if(!keyIsDown(78)) {
+        this.doublePressLock = false;
+      }
+    } else {
+      game.inDialog = false;
+    }
+  }
 }
 class breakfastTable extends InteractableElement{
   dialogSet;
@@ -272,6 +309,41 @@ class InteractablePerson extends InteractableElement{
     super.drawElemM();
   }
 }
+class Payphone extends InteractableElement{
+  dialogSet;
+  doublePressLock;
+  currentWordIndex;
+  constructor(imgName, appX, appY, x, y, behind = true){
+    super(imgName, appX, appY, x, y, behind = true);
+    this.dialogSet=["You try to call someone... they dont answer\n Y)okay"];
+    this.doublePressLock = false;
+    this.currentWordIndex = 0;
+    this.interacted = false;
+  }
+  interact(){
+    game.inDialog=true;
+    
+  }
+
+  talk(){
+    if(!this.interacted){
+      game.headsUp.displayBottomBox(500);
+      game.headsUp.displayText(this.dialogSet[this.currentWordIndex]);
+  
+      if(keyIsDown(89) && !this.doublePressLock){
+        //player.decrementSpoon();//SPOONS
+        this.doublePressLock = true;
+        game.inDialog = false;
+        this.interacted = true;
+        player.incrementStress();
+      }else{
+        this.doublePressLock = false;
+      }
+    } else{
+      game.inDialog = false;
+    }
+  }
+}
 class VitalsCart extends InteractablePerson{
   dialogSet;
   doublePressLock;
@@ -316,15 +388,24 @@ class VitalsCart extends InteractablePerson{
   }
 }
 class NSPersonEval extends InteractablePerson{
+  doublePressLock;
   constructor(imgName, appX, appY, x, y, behind = true){
     super(imgName, appX, appY, x, y, behind = true);
+    this.doublePressLock = true;
   }
+
   interact(){
     game.inDialog = true;
   }
   talk(){
     if(!this.interacted){
-
+      if(keyIsDown(32) && !this.doublePressLock){
+        this.interacted = true;
+      } else if(!keyIsDown(32)){
+        this.doublePressLock = false;
+        game.inDialog = false;
+      }
+    } else {
       let boxColor = color(255, 255, 255)
       boxColor.setAlpha(500);
       fill(boxColor);
@@ -339,11 +420,11 @@ class NSPersonEval extends InteractablePerson{
         fill(176, 9, 39);
         text("Reccomendation: Extend term", 515, 200, 1450, 400);
       }
+      
+      /*
       fill(0, 0, 0);
       text("Stats:", 200, 250, 1450, 400);
-
-    } else {
-      game.inDialog = false;
+      */
     }
   }
 }
@@ -613,7 +694,7 @@ class HallWay3 extends HallWay{
   constructor(){
     super();
     this.background = loadImage("assets/rooms/hallway3.png");
-    this.arrows = [new arrow("backArrow", 731, 558, 4), new arrow("leftDoorArrow", 286, 397, 0), new arrow("rightDoorArrow", 1171, 425, 0)];
+    this.arrows = [new arrow("backArrow", 731, 558, 4), new arrow("leftDoorArrow", 286, 397, 0)];//, new arrow("rightDoorArrow", 1171, 425, 0)];
   }
 }
 class NoBathroomHW3 extends HallWay{
@@ -667,6 +748,7 @@ class CommonRoom extends Room{
     super();
     this.background = loadImage("assets/rooms/commonRoom.png");
     this.arrows = [new arrow("backArrow", 709, 542, 1)]
+    this.roomElems.push(new Payphone("payphone", 1140, 208, 0, 0, true));
   }
   runRoom(){
     image(this.background, 0, 0);
@@ -683,17 +765,29 @@ class CommonRoom extends Room{
 class AfternoonCR extends CommonRoom{
   constructor(){
     super();
+    this.roomElems.push(new RoomElement("book", 0, 0, true));
+    this.roomElems.push(new RoomElement("chair", 0, 0, true));
+    this.roomElems.push(new RoomElement("papers",0, 0, true));
+    this.roomElems.push(new RoomElement("rPay",0, 0, true));
+    this.roomElems.push(new RoomElement("phoneGuy",0, 0, true));
   }
 }
 class ActivityCR extends AfternoonCR{
   constructor(){
     super();
     this.roomElems.push(new ARARROW("leftDoorArrow", 169, 266, -30 , -100, 200));
+    this.roomElems.push(new Dispenser("book", 620, 208, 0, 0, true));
+    this.roomElems.push(new RoomElement("chair", 0, 0, true));
   }
 }
 class MorningCR extends CommonRoom{
   constructor(){
     super();
+    this.roomElems.push(new RoomElement("book", 0, 0, true));
+    this.roomElems.push(new RoomElement("chair", 0, 0, true));
+    this.roomElems.push(new RoomElement("papers",0, 0, true));
+    this.roomElems.push(new RoomElement("rPayphone",0, 0, true));
+    this.roomElems.push(new RoomElement("crGuy",0, 0, false));
   }
 }
 class DiningRoom extends Room{
@@ -701,7 +795,7 @@ class DiningRoom extends Room{
     super();
     this.background = loadImage("assets/rooms/diningRoom.png");
     this.arrows = [new arrow("rightArrow", 1386, 314, 6), new arrow("forwardArrow", 745, 210, 2)];
-    this.roomElems =[new RoomElement("diningTable", 0, 0, false), new RoomElement("foodCabinet", 600, -175, true)];
+    this.roomElems =[new RoomElement("diningTable", 0, 0, false), new RoomElement("foodCabinet", 600, -175, true), new CoffeeKid(0, 0, false)];
   }
   runRoom(){
     image(this.background, 0, 0);
@@ -730,12 +824,14 @@ class LunchDR extends DiningRoom{
     this.background =loadImage("assets/rooms/afternoonDR.png");
     this.roomElems[1] = new Dispenser("foodCabinet", 1140, 208, 600, -175, true);
     this.roomElems[0] = new breakfastTable("diningTable", 440, 288, 0, 0, false);
+    this.roomElems.push(new RoomElement("diningRoomBoi", 0, 0, false));
   }
 }
 class Bedroom extends Room{
   constructor(){
     super();
     this.background = loadImage("assets/rooms/bedroom.png");
+    this.roomElems =[new WindowElem("window", 1172, 308, 0, 0, true)];
     this.arrows = [new arrow("leftDoorArrow", 308, 312, 4)];
   }
   runRoom(){
