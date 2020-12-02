@@ -64,6 +64,10 @@ class GameState{
     this.timeIndex++;
     //player.spoons = 3;
   }
+  moveToRoom(i){
+    this.roomIndex = i;
+    this.closestElement = false;
+  }
 }
 
 class RoomElement{
@@ -719,7 +723,6 @@ class BathroomArrow extends InteractableElement{
 
   }
   noToothBrush(){
-    //Not Implemented yet
     if(keyIsDown(89) && !this.doublePressLock){
       this.doublePressLock = true;
       this.currentWordIndex = 0;
@@ -1289,7 +1292,13 @@ class Player{
         animation(this.walkLeft, this.xPos, this.yPos)
       }
 
-    //This will handle INTERACTIONS!
+    //This will handle INTERACTIONS with arrows!
+    } else if(keyCode == 32 && game.nextRoomIndex){
+      console.log("move?");
+      game.moveToRoom(game.nextRoomIndex);
+      player.yPos = 400;
+      player.xPos = 800;
+      //This will handle INTERACTIONS with Elements!
     } else if(keyIsDown(32)) {
       this.displayPlayer();
       if(this.keyReleased == true){
@@ -1376,12 +1385,12 @@ function keyPressed(){
     game.roomIndex = (game.roomIndex + 1) % game.roomArray.length;
     console.log(game.roomIndex);
 
-  } else if(keyCode == 32 && game.nextRoomIndex){
+  } /* else if(keyCode == 32 && game.nextRoomIndex){
     console.log("move?");
-    game.roomIndex = game.nextRoomIndex;
+    game.moveToRoom(game.nextRoomIndex);
     player.yPos = 400;
     player.xPos = 800;
-  }
+  } */
 }
 
 
